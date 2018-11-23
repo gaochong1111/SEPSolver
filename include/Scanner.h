@@ -1,9 +1,5 @@
-#if !defined(SCANNER_H_)
-#define SCANNER_H_H
-
-#include<iostream>
-#include "Token.h"
-
+#if !defined(SCANNER_)
+#define SCANNER_
 /*******************************************
 *  @file     Scanner.h                     *
 *  @brief    Scanner for smt file          *
@@ -14,28 +10,40 @@
 *                                          *
 *******************************************/
 
-class Scanner {
+#include<iostream>
+#include<vector>
+
+using std::istream;
+using std::string;
+using std::vector;
+
+/*! @class Scanner
+ *  @brief Brief class description
+ *
+ *  Detailed description
+ */
+class Scanner 
+{
 public:
-    Scanner(){}
-    ~Scanner(){}
-    Token* scan();
+    Scanner(istream& in);
+    ~Scanner() {}
+    bool next();
+    void newLine() {m_line++; m_position=0;}
+    char curr() const {return m_curr;}
+    bool iseof() const {return m_is_eof;}
+    int line() const {return m_line;}
+    int col() const {return m_position;}
 
 protected:
-    void next();
-    void initNormalizedTable();
-    
-    void readComment();
-    Token* readSymbol();
-    Token* readQuotedSymbol();
-    Token* readBvLiteral();
-    Token* readNumberLiteral();
-    Token* readSignedNumberOrSymbol();
-    Token* readStringLiteral();
 
-protected:
-    int line; ///< line number
-    int position; ///< position in line
-    char curr; ///< current char
-    char normalizedTable[256]; ///< normalized table for characters
+    int m_line; ///< line number
+    int m_position; ///< position in line
+    char m_curr; ///< current char
+
+    bool m_is_eof; ///< EOF flag
+
+    vector<char> m_str_cache; ///< cache the string value
+
+    istream& m_in; ///< input stream
 };
 #endif
