@@ -1,6 +1,21 @@
-*
-!*.c
-!*.cpp
-!*.h
-!*.py
-!*.gitignore
+# Object files
+*.o
+
+build/*
+
+# Libraries
+*.so
+*.lib
+*.a
+*.dll
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Other files
+*.png
+*.dot
