@@ -29,8 +29,19 @@ def init():
     config["dst_name"] = "test"
     config["testcases"] = [
                 {
-                    "dst_name": "TestScanner",
-                    "related_files": ["Scanner.cpp", "TestScanner.cpp"]
+                    "dst_name": "TestTokenScanner",
+                    "related_files": 
+                        [
+                            "Scanner.cpp", 
+                            "TokenScanner.cpp",
+                            "TokenScannerFactory.cpp",
+                            "CommentScanner.cpp",
+                            "KeywordScanner.cpp",
+                            "NumberLiteralScanner.cpp",
+                            "StringLiteralScanner.cpp",
+                            "SymbolScanner.cpp",
+                            "TestScanner.cpp"
+                        ]
                 }
             ]
     config["testobjs"] = {}

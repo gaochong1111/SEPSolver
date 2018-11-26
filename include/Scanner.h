@@ -28,11 +28,16 @@ public:
     Scanner(istream& in);
     ~Scanner() {}
     bool next();
+    bool skip();
     void newLine() {m_line++; m_position=0;}
     char curr() const {return m_curr;}
     bool iseof() const {return m_is_eof;}
     int line() const {return m_line;}
     int col() const {return m_position;}
+
+    void clearStrCache() {m_str_cache.clear();}
+    void cache(char ch) {m_str_cache.push_back(ch);}
+    const vector<char>& getCache() const { return m_str_cache;}
 
 protected:
 

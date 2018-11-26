@@ -1,7 +1,9 @@
 #if !defined(TOKEN_H_)
 #define TOKEN_H_
 
+#include <iostream>
 using std::string;
+
 
 /*****************************************
 *  @file     Token.h                       *
@@ -38,6 +40,12 @@ private:
     TOKEN m_type;
     int m_row;
     int m_col;
+    static string type_str(TOKEN type) {
+        string type_strs[] = {"NULL_TOKEN", "LEFT_PAREN", "RIGHT_PAREN", 
+           "KEYWORD_TOKEN", "SYMBOL_TOKEN", "STRING_TOKEN", "INT_TOKEN",
+           "FLOAT_TOKEN", "BV_TOKEN", "EOF_TOKEN"};
+       return type_strs[type]; 
+    }
 
 public:
     Token(TOKEN type, int row, int col)
@@ -46,6 +54,7 @@ public:
     TOKEN type() const {return m_type;}
     int row() const {return m_row;}
     int col() const {return m_col;}
+    virtual void display() {std::cout << "(" << m_row << ", " << m_col << ", " << type_str(m_type) << ")";}
 };
 
 
@@ -63,8 +72,9 @@ public:
     StrToken(TOKEN type, int row, int col, string value)
         : Token(type, row, col), m_value(value) {}
 
-    string& value() const {return m_value;}
+    const string& value() const {return m_value;}
     virtual ~StrToken() {}
+    virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };
 
 
@@ -83,6 +93,7 @@ public:
         : Token(type, row, col), m_value(value) {}
     float value() const {return m_value;}
     virtual ~FloatToken() {}
+    virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };
 
 
@@ -101,6 +112,7 @@ public:
         : Token(type, row, col), m_value(value) {}
     int value() const {return m_value;}
     virtual ~IntToken() {}
+    virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };
 
 #endif
