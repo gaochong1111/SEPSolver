@@ -7,6 +7,7 @@
 using std::ifstream;
 using std::cout;
 using std::endl;
+using std::string;
 
 void testScanner() {
     ifstream fin;
@@ -30,9 +31,9 @@ void testScanner() {
     fin.close();
 }
 
-void testTokenScanner() {
+void testTokenScanner(string file_name) {
     ifstream fin;
-    fin.open("in.smt");
+    fin.open(file_name, std::ios_base::binary);
     if (!fin.is_open()) {
         cout << "OPEN FILE FAILED!\n";
         exit(-1);
@@ -63,9 +64,12 @@ void testTokenScanner() {
 
 }
 
-int main()
+int main(int argc, const char *argv[])
 {
-    // testScanner(); 
-    testTokenScanner();
+    if (argc == 2) {
+        string file_name = argv[1];
+        testTokenScanner(file_name);
+    } 
     return 0;
 }
+

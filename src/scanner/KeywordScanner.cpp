@@ -25,8 +25,8 @@ Token* KeywordScanner::scan(Scanner& scanner) {
     scanner.clearStrCache();
 
     while (scanner.next()) {
-        if (isspace(scanner.curr())) {
-            return new StrToken(STRING_TOKEN, line, col, 
+        if (stop(scanner.curr())) {
+            return new StrToken(KEYWORD_TOKEN, line, col, 
                     string(scanner.getCache().begin(), scanner.getCache().end()));
         }
         scanner.cache(scanner.curr());
@@ -35,3 +35,18 @@ Token* KeywordScanner::scan(Scanner& scanner) {
     return new Token(EOF_TOKEN, line, col);
 }
 
+/*! @brief Brief function description here
+ *
+ *  Detailed description
+ *
+ * @param curr Parameter description
+ * @return Return parameter description
+ */
+bool KeywordScanner::stop(char curr) {
+    set<char> stopset;
+    stopset.insert(' ');
+    stopset.insert(')');
+    stopset.insert('(');
+    stopset.insert('\n');
+    return stopset.find(m_normalized_table[static_cast<int>(curr)]) != stopset.end();
+}

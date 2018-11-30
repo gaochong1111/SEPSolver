@@ -11,6 +11,18 @@
 *******************************************/
 
 #include <iostream>
+#include <map>
+#include <vector>
+#include "Scanner.h"
+
+using std::map;
+using std::vector;
+using std::string;
+
+using SortTable = map<string, SortType>; 
+using FuncTable = map<string, FuncType>;
+using VarStack = vector<Var>;
+using ScopeMarkStack = vector<int>;
 
 /*! @class Parser
  *  @brief Brief class description
@@ -20,12 +32,19 @@
 class Parser
 {
 public:
-    Parser();
-    virtual ~Parser();
-    void parse(istream& is);
+    Parser(istream& is) :m_scanner(is) {}
+    virtual ~Parser() {}
+    void parse();
+    Scanner& getScanner() const {return m_scanner;}
 
 protected:
-    m_; ///< Member description
+    Scanner m_scanner; ///< scanner
+    SortTable m_sort_table; ///< global sort table
+    FuncTable m_func_table; ///< global function table
+
+    VarStack m_var_stack; ///< var environment
+    ScopeMarkStack m_scope_mark_stack; ///< scope mark
+
 };
 
 #endif

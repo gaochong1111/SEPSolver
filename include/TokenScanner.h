@@ -12,6 +12,9 @@
 #include "Scanner.h"
 #include "Token.h"
 #include <cctype>
+#include <set>
+
+using std::set;
 
 /*! @class TokenScanner
  *  @brief Base class of all token scanners
@@ -30,6 +33,7 @@ public:
     static char id(char ch) {return m_normalized_table[static_cast<int>(ch)];}
 
 protected:
+    virtual bool stop(char curr) {return false;}
     static char m_normalized_table[256]; ///< normalized table for characters
 };
 

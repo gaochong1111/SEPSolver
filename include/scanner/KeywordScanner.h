@@ -23,6 +23,9 @@ public:
     KeywordScanner() {}
     virtual ~KeywordScanner() {}
     Token* scan(Scanner& scanner);
+
+protected:
+    virtual bool stop(char curr);
 };
 
 #endif

@@ -1,7 +1,7 @@
-#if !defined(COMMAND_PARSER_)
-#define COMMAND_PARSER_
+#if !defined(SORT_TYPE_)
+#define SORT_TYPE_
 /*******************************************
-*  @file  CommandParser.h                  * 
+*  @file  SortType.h                       * 
 *  @brief    Brief file description        *
 *                                          *
 *  @author   Chong Gao                     *
@@ -10,19 +10,23 @@
 *                                          *
 *******************************************/
 
-#include "Parser.h"
+using std::string;
 
-/*! @class CommandParser
+/*! @class SortType
  *  @brief Brief class description
  *
  *  Detailed description
  */
-class CommandParser
+class SortType
 {
 public:
-    CommandParser() {}
-    virtual ~CommandParser() {}
-    virtual void parse(Parser& scanner) {}
+    SortType();
+    virtual ~SortType();
 
+protected:
+    string m_sort_name; ///< Member description
+    int m_sort_size; ///< sort size
 };
+
+
 #endif

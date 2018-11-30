@@ -34,6 +34,7 @@ public:
     bool iseof() const {return m_is_eof;}
     int line() const {return m_line;}
     int col() const {return m_position;}
+    void back(int offset) {if (m_curr == '\n') {m_line--;} else {m_position--;} m_in.seekg(offset, std::ios_base::cur);}
 
     void clearStrCache() {m_str_cache.clear();}
     void cache(char ch) {m_str_cache.push_back(ch);}

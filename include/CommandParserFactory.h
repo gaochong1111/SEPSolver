@@ -1,7 +1,5 @@
-#if !defined(COMMAND_PARSER_)
-#define COMMAND_PARSER_
 /*******************************************
-*  @file  CommandParser.h                  * 
+*  @file  CommandParserFactory.h           * 
 *  @brief    Brief file description        *
 *                                          *
 *  @author   Chong Gao                     *
@@ -10,19 +8,18 @@
 *                                          *
 *******************************************/
 
-#include "Parser.h"
+#include "CommandParser.h"
 
-/*! @class CommandParser
+
+/*! @class CommandParserFactory
  *  @brief Brief class description
  *
  *  Detailed description
  */
-class CommandParser
+class CommandParserFactory
 {
 public:
-    CommandParser() {}
-    virtual ~CommandParser() {}
-    virtual void parse(Parser& scanner) {}
-
+    CommandParserFactory() {}
+    virtual ~CommandParserFactory() {}
+    CommandParser* getCommandParser(const string& sign); 
 };
-#endif

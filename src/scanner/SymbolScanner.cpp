@@ -10,6 +10,7 @@
 
 #include "scanner/SymbolScanner.h"
 
+
 /*! @brief Brief function description here
  *
  *  Detailed description
@@ -28,9 +29,13 @@ Token* SymbolScanner::scan(Scanner& scanner) {
         scanner.cache(scanner.curr());
         simple = true;
     }
+    
+
     while (scanner.next()) {
-        if ((simple && isspace(scanner.curr())) ||
+         
+        if ((simple && stop(scanner.curr())) || 
                (!simple && scanner.curr() == '|')) {
+            if (simple) scanner.back(-1);
             return new StrToken(SYMBOL_TOKEN, line, col, 
                     string(scanner.getCache().begin(), 
                         scanner.getCache().end()));
@@ -39,4 +44,21 @@ Token* SymbolScanner::scan(Scanner& scanner) {
     }
 
     return new Token(EOF_TOKEN, line, col);
+}
+
+
+/*! @brief Brief function description here
+ *
+ *  Detailed description
+ *
+ * @param curr Parameter description
+ * @return Return parameter description
+ */
+bool SymbolScanner::stop(char curr) {
+    set<char> stopset;
+    stopset.insert(' ');
+    stopset.insert(')');
+    stopset.insert('(');
+    stopset.insert('\n');
+    return stopset.find(m_normalized_table[static_cast<int>(curr)]) != stopset.end();
 }

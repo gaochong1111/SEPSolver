@@ -18,7 +18,7 @@
 */
 Scanner::Scanner(istream& in)
     :m_line(1),
-    m_position(1),
+    m_position(0),
     m_curr(0),
     m_is_eof(false),
     m_str_cache(0),
@@ -43,6 +43,7 @@ bool Scanner::next() {
         else
             m_position ++;
     }
+    // std::cout << m_line << "," << m_position << " -> " << m_curr << std::endl;
     return !m_is_eof;
 }
 
