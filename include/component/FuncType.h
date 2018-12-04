@@ -29,8 +29,8 @@ using ArgTypeList = vector<SortType>;
 class FuncType
 {
 public:
-    FuncType();
-    virtual ~FuncType();
+    FuncType() {}
+    virtual ~FuncType() {}
 
 protected:
     string m_name; ///< Member description
@@ -41,7 +41,7 @@ protected:
 };
 
 
-using ParTypeList = vector<string>
+using ParTypeList = vector<string>;
 
 /*! @class ParFuncType
  *  @brief Brief class description
@@ -51,8 +51,8 @@ using ParTypeList = vector<string>
 class ParFuncType :public FuncType
 {
 public:
-    ParFuncType();
-    virtual ~ParFuncType();
+    ParFuncType() {}
+    virtual ~ParFuncType() {}
 
 protected:
     ParTypeList m_par_type_list; ///< Member description

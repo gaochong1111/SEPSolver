@@ -18,7 +18,7 @@ def init():
     global config
     config = {}
 
-    config["pro_dir"] = "E:\\Code\\cplusplus_demos\\SEPSolver"
+    config["pro_dir"] = "C:\\Users\\jackchong\\Work\\Code\\CPP\\SEPSolver"
     config["inc_dir"] = "include"
     config["src_dir"] = "src"
     config["build_dir"] = config["pro_dir"] + "\\build"
@@ -28,9 +28,31 @@ def init():
     config["objs"] = []
     config["dst_name"] = "test"
     config["testcases"] = [
+                #{
+                #    "dst_name": "TestTokenScanner",
+                #    "related_files": 
+                #        [
+                #            "Scanner.cpp", 
+                #            "TokenScanner.cpp",
+                #            "TokenScannerFactory.cpp",
+                #            "CommentScanner.cpp",
+                #            "KeywordScanner.cpp",
+                #            "NumberLiteralScanner.cpp",
+                #            "StringLiteralScanner.cpp",
+                #            "SymbolScanner.cpp",
+                #            "TestScanner.cpp"
+                #        ]
+                #},
+                #{
+                #    "dst_name": "TestException",
+                #    "related_files":
+                #        [
+                #            "TestException.cpp"
+                #        ]
+                #},
                 {
-                    "dst_name": "TestTokenScanner",
-                    "related_files": 
+                    "dst_name": "TestParser",
+                    "related_files":
                         [
                             "Scanner.cpp", 
                             "TokenScanner.cpp",
@@ -40,9 +62,14 @@ def init():
                             "NumberLiteralScanner.cpp",
                             "StringLiteralScanner.cpp",
                             "SymbolScanner.cpp",
-                            "TestScanner.cpp"
+ 
+                            "CommandParserFactory.cpp",
+                            "Parser.cpp",
+                            "SetLogicParser.cpp",
+                            "TestParser.cpp"
                         ]
                 }
+
             ]
     config["testobjs"] = {}
 

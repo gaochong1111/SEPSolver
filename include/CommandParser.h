@@ -17,12 +17,13 @@
  *
  *  Detailed description
  */
+class Parser;
 class CommandParser
 {
 public:
     CommandParser() {}
     virtual ~CommandParser() {}
-    virtual void parse(Parser& scanner) {}
+    virtual void parse(Parser& parser) {}
 
 };
 #endif

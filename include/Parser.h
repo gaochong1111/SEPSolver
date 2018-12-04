@@ -13,7 +13,15 @@
 #include <iostream>
 #include <map>
 #include <vector>
+
 #include "Scanner.h"
+#include "TokenScannerFactory.h"
+#include "CommandParserFactory.h"
+#include "exception/SemanticException.h"
+#include "exception/SyntaxException.h"
+#include "component/FuncType.h"
+#include "component/SortType.h"
+#include "component/Var.h"
 
 using std::map;
 using std::vector;
@@ -32,13 +40,18 @@ using ScopeMarkStack = vector<int>;
 class Parser
 {
 public:
-    Parser(istream& is) :m_scanner(is) {}
+    Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) {}
     virtual ~Parser() {}
     void parse();
-    Scanner& getScanner() const {return m_scanner;}
+    void skip() {m_scanner.skip();}
+    Scanner& getScanner() {return m_scanner;}
+    TokenScannerFactory& getFactory() {return m_factory;}
+
+    Token* checkNext(TOKEN type, string info);
 
 protected:
     Scanner m_scanner; ///< scanner
+    TokenScannerFactory& m_factory; ///< factory
     SortTable m_sort_table; ///< global sort table
     FuncTable m_func_table; ///< global function table
 

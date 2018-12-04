@@ -1,3 +1,6 @@
+#if !defined(COMMAND_PARSER_FACTORY_)
+#define COMMAND_PARSER_FACTORY_
+
 /*******************************************
 *  @file  CommandParserFactory.h           * 
 *  @brief    Brief file description        *
@@ -9,6 +12,9 @@
 *******************************************/
 
 #include "CommandParser.h"
+#include "parser/SetLogicParser.h"
+
+class CommandParser;
 
 
 /*! @class CommandParserFactory
@@ -23,3 +29,4 @@ public:
     virtual ~CommandParserFactory() {}
     CommandParser* getCommandParser(const string& sign); 
 };
+#endif

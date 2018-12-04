@@ -9,8 +9,8 @@
 class Var
 {
 public:
-    Var();
-    virtual ~Var();
+    Var() {}
+    virtual ~Var() {}
 
 protected:
     string m_var_name; ///< Member description
