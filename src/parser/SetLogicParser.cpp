@@ -27,8 +27,7 @@ void SetLogicParser::parse(Parser& parser) {
     Token* curr = parser.checkNext(STRING_TOKEN, "logic name is expected!");
     //
     cout << dynamic_cast<StrToken*>(curr)->value() << endl;
-    delete curr;
 
     curr = parser.checkNext(RIGHT_PAREN, "')' is expected!"); 
-    delete curr;
+    // action: init context by logic file
 }

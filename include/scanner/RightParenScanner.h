@@ -22,6 +22,11 @@ class RightParenScanner: public TokenScanner
 public:
     RightParenScanner() {}
     virtual ~RightParenScanner() {}
-    Token* scan(Scanner& scanner) {return new Token(RIGHT_PAREN, scanner.line(), scanner.col());}
+    Token* scan(Scanner& scanner) {
+        Token* token = m_buffer.getToken();
+
+        token->reset(RIGHT_PAREN, scanner.line(), scanner.col());
+        return token;
+    }
 };
 #endif

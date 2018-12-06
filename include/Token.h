@@ -54,6 +54,12 @@ public:
     TOKEN type() const {return m_type;}
     int row() const {return m_row;}
     int col() const {return m_col;}
+    void reset(TOKEN type, int row, int col) {
+        m_type = type; m_row = row; m_col = col;
+    }
+    void setType(TOKEN type) {m_type = type;}
+    void setRow(int row) {m_row = row;}
+    void setCol(int col) {m_col = col;}
     virtual void display() {std::cout << "(" << m_row << ", " << m_col << ", " << type_str(m_type) << ")";}
 };
 
@@ -72,7 +78,13 @@ public:
     StrToken(TOKEN type, int row, int col, string value)
         : Token(type, row, col), m_value(value) {}
 
+    void reset(TOKEN type, int row, int col, string value) {
+        Token::reset(type, row, col);
+        m_value = value;
+    }
+
     const string& value() const {return m_value;}
+    void setValue(string& value) {m_value = value;}
     virtual ~StrToken() {}
     virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };
@@ -91,7 +103,12 @@ private:
 public:
     FloatToken(TOKEN type, int row, int col, float value)
         : Token(type, row, col), m_value(value) {}
+    void reset(TOKEN type, int row, int col, float value) {
+        Token::reset(type, row, col);
+        m_value = value;
+    }
     float value() const {return m_value;}
+    void setValue(float value) {m_value = value;}
     virtual ~FloatToken() {}
     virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };
@@ -110,7 +127,13 @@ private:
 public:
     IntToken(TOKEN type, int row, int col, int value)
         : Token(type, row, col), m_value(value) {}
+
+    void reset(TOKEN type, int row, int col, int value) {
+        Token::reset(type, row, col);
+        m_value = value;
+    }
     int value() const {return m_value;}
+    void setValue(int value) { m_value = value;}
     virtual ~IntToken() {}
     virtual void display() {Token::display(); std::cout << " -> " << m_value;}
 };

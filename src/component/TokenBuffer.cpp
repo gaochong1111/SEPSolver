@@ -1,5 +1,5 @@
 /*******************************************
-*  @file  CommandParserFactory.cpp         * 
+*  @file  TokenBuffer.cpp                  * 
 *  @brief    Brief file description        *
 *                                          *
 *  @author   Chong Gao                     *
@@ -8,20 +8,24 @@
 *                                          *
 *******************************************/
 
-#include "CommandParserFactory.h"
+#include "component/TokenBuffer.h"
 
 /*! @brief Brief function description here
  *
  *  Detailed description
  *
- * @param sign Parameter description
  * @return Return parameter description
  */
-CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
-    
-    if (sign == "set-logic") {
-        return m_buffer.getSetLogicParser(); 
-    }
+TokenBuffer::TokenBuffer() {
+    m_buffer["Token"] = new Token(NULL_TOKEN, -1, -1);
+    m_buffer["StrToken"] = new StrToken(STRING_TOKEN, -1, -1, "");
+    m_buffer["FloatToken"] = new FloatToken(FLOAT_TOKEN, -1, -1, 0.0f);
+    m_buffer["IntToken"] = new IntToken(INT_TOKEN, -1, -1, 0);
 
-    return nullptr;
+}
+
+TokenBuffer::~TokenBuffer() {
+    for (auto& item : m_buffer) {
+        delete item.second;
+    }
 }

@@ -12,12 +12,13 @@
 
 #include "Parser.h"
 
+class Parser;
+
 /*! @class CommandParser
  *  @brief Brief class description
  *
  *  Detailed description
  */
-class Parser;
 class CommandParser
 {
 public:

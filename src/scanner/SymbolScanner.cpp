@@ -32,18 +32,20 @@ Token* SymbolScanner::scan(Scanner& scanner) {
     
 
     while (scanner.next()) {
-         
         if ((simple && stop(scanner.curr())) || 
                (!simple && scanner.curr() == '|')) {
             if (simple) scanner.back(-1);
-            return new StrToken(SYMBOL_TOKEN, line, col, 
-                    string(scanner.getCache().begin(), 
-                        scanner.getCache().end()));
+            StrToken* token = m_buffer.getStrToken();
+            token->reset(SYMBOL_TOKEN, line, col, 
+                    string(scanner.getCache().begin(), scanner.getCache().end()));
+            return token;
         } 
         scanner.cache(scanner.curr());
     }
 
-    return new Token(EOF_TOKEN, line, col);
+    Token* token = m_buffer.getToken();
+    token->reset(EOF_TOKEN, line, col);
+    return token;
 }
 
 

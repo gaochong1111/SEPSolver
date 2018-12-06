@@ -40,25 +40,35 @@ Token* NumberLiteralScanner::scan(Scanner& scanner) {
         scanner.cache(scanner.curr());
     }
 
-    if (scanner.iseof()) 
-        return new Token(EOF_TOKEN, line, col);
+
+    if (scanner.iseof()) {
+        Token* token = m_buffer.getToken();
+        token->reset(EOF_TOKEN, line, col);
+        return token;
+    }
 
     scanner.back(-1); 
 
     if (scanner.getCache().size() == 1) what = -1;
     
     if (what == 0) {
-        return new IntToken(INT_TOKEN, line, col,
+        IntToken* token = m_buffer.getIntToken();
+        token->reset(INT_TOKEN, line, col,
                 std::stoi(string(scanner.getCache().begin(), 
                         scanner.getCache().end())));
+        return token;
     } else if (what == 1) {
-        return new FloatToken(FLOAT_TOKEN, line, col,
+        FloatToken* token = m_buffer.getFloatToken();
+        token->reset(FLOAT_TOKEN, line, col,
                 std::stof(string(scanner.getCache().begin(),
                         scanner.getCache().end())));
+        return token;
     } else {
-        return new StrToken(SYMBOL_TOKEN, line, col,
+        StrToken* token = m_buffer.getStrToken();
+        token->reset(SYMBOL_TOKEN, line, col,
                 string(scanner.getCache().begin(), 
                     scanner.getCache().end()));
+        return token;
     }
 }
 

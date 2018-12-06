@@ -11,10 +11,9 @@
 *                                          *
 *******************************************/
 
-#include "CommandParser.h"
-#include "parser/SetLogicParser.h"
+#include "component/CommandParserBuffer.h"
 
-class CommandParser;
+extern CommandParserBuffer cmd_parser_buffer;
 
 
 /*! @class CommandParserFactory
@@ -25,8 +24,11 @@ class CommandParser;
 class CommandParserFactory
 {
 public:
-    CommandParserFactory() {}
+    CommandParserFactory() :m_buffer(cmd_parser_buffer) {}
     virtual ~CommandParserFactory() {}
     CommandParser* getCommandParser(const string& sign); 
+
+private:
+    CommandParserBuffer& m_buffer;
 };
 #endif

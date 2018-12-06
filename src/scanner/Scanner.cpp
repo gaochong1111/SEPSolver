@@ -8,7 +8,10 @@
 *                                          *
 *******************************************/
 
-#include "Scanner.h"
+#include "TokenScanner.h"
+#include "TokenScannerFactory.h"
+
+extern TokenScannerFactory tokenScannerFactory;
 
 /**
 * @brief constructor 
@@ -24,6 +27,54 @@ Scanner::Scanner(istream& in)
     m_str_cache(0),
     m_in(in) { 
 
+}
+
+/*! @brief Brief function description here
+ *
+ *  Detailed description
+ *
+ * @param type Parameter description
+ * @param info Parameter description
+ * @return Return parameter description
+ */
+Token* Scanner::checkNext(TOKEN type, string info) {
+
+    if (skip()) {
+        TokenScanner* ts = nullptr;
+        Token* result = nullptr;
+        char sign = 0; 
+        sign = TokenScanner::id(curr());
+        ts = tokenScannerFactory.getTokenScanner(sign);
+        result = ts->scan(*this);
+        
+        if (result->type() != type)
+            throw SyntaxException(info, result->row(), result->col());
+
+        return result;
+    }
+
+    return nullptr;   
+}
+
+/*! @brief Brief function description here
+ *
+ *  Detailed description
+ *
+ * @return Return parameter description
+ */
+Token* Scanner::nextToken() {
+
+    if (skip()) {
+        TokenScanner* ts = nullptr;
+        Token* result = nullptr;
+        char sign = 0; 
+        sign = TokenScanner::id(curr());
+        ts = tokenScannerFactory.getTokenScanner(sign);
+        result = ts->scan(*this);
+        return result;
+    }
+
+    return nullptr;
 }
 
 /**

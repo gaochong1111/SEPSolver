@@ -10,14 +10,8 @@
 *                                          *
 *******************************************/
 
-#include "TokenScanner.h"
-#include "scanner/LeftParenScanner.h"
-#include "scanner/RightParenScanner.h"
-#include "scanner/CommentScanner.h"
-#include "scanner/KeywordScanner.h"
-#include "scanner/NumberLiteralScanner.h"
-#include "scanner/StringLiteralScanner.h"
-#include "scanner/SymbolScanner.h"
+#include "component/TokenScannerBuffer.h"
+extern TokenScannerBuffer token_scanner_buffer;
 
 /*! @class TokenScannerFactory
  *  @brief Brief class description
@@ -27,9 +21,11 @@
 class TokenScannerFactory
 {
 public:
-    TokenScannerFactory() {}
+    TokenScannerFactory():m_buffer(token_scanner_buffer) {}
     virtual ~TokenScannerFactory() {}
     TokenScanner* getTokenScanner(char sign);
+protected:
+    TokenScannerBuffer& m_buffer;
 
 };
 

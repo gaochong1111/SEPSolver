@@ -26,13 +26,18 @@ Token* KeywordScanner::scan(Scanner& scanner) {
 
     while (scanner.next()) {
         if (stop(scanner.curr())) {
-            return new StrToken(KEYWORD_TOKEN, line, col, 
+            StrToken* token = m_buffer.getStrToken();
+            token->reset(KEYWORD_TOKEN, line, col, 
                     string(scanner.getCache().begin(), scanner.getCache().end()));
+
+            return token;
         }
         scanner.cache(scanner.curr());
     }
 
-    return new Token(EOF_TOKEN, line, col);
+    Token* token = m_buffer.getToken();
+    token->reset(EOF_TOKEN, line, col);
+    return token;
 }
 
 /*! @brief Brief function description here

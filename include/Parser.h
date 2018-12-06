@@ -16,7 +16,7 @@
 
 #include "Scanner.h"
 #include "TokenScannerFactory.h"
-#include "CommandParserFactory.h"
+// #include "CommandParserFactory.h"
 #include "exception/SemanticException.h"
 #include "exception/SyntaxException.h"
 #include "component/FuncType.h"
@@ -47,7 +47,7 @@ public:
     Scanner& getScanner() {return m_scanner;}
     TokenScannerFactory& getFactory() {return m_factory;}
 
-    Token* checkNext(TOKEN type, string info);
+    Token* checkNext(TOKEN type, string info) {return m_scanner.checkNext(type, info);}
 
 protected:
     Scanner m_scanner; ///< scanner

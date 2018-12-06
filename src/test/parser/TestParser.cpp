@@ -38,6 +38,7 @@ int main(int argc, const char *argv[])
         string file_name = argv[1];
         cout << "file: " << file_name << endl;
         testParser(file_name);
+        cout << "ENDING......" << endl;
     } 
     return 0;
 }

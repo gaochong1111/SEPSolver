@@ -20,24 +20,23 @@
 TokenScanner* TokenScannerFactory::getTokenScanner(char sign) {
     switch(sign) {
         case '(':
-            return new LeftParenScanner(); 
+            return m_buffer.getLeftParenScanner();
         case ')':
-            return new RightParenScanner();
+            return m_buffer.getRightParenScanner();
         case '0':
         case '-':
-            return new NumberLiteralScanner();
+            return m_buffer.getNumberLiteralScanner();
         case '|':
         case 'a':
-            return new SymbolScanner();
+            return m_buffer.getSymbolScanner();
         case '"':
-            return new StringLiteralScanner();
+            return m_buffer.getStringLiteralScanner();
         case ';':
-            return new CommentScanner();
+            return m_buffer.getCommentScanner();
         case ':':
-            return new KeywordScanner();
+            return m_buffer.getKeywordScanner();
         default:
-            return new TokenScanner();
-
+            return m_buffer.getTokenScanner();
     }
-    
 }
+

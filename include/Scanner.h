@@ -13,6 +13,9 @@
 #include<iostream>
 #include<vector>
 
+#include "Token.h"
+#include "exception/SyntaxException.h"
+
 using std::istream;
 using std::string;
 using std::vector;
@@ -24,6 +27,10 @@ using std::vector;
  */
 class Scanner 
 {
+public:
+    Token* checkNext(TOKEN type, string info);
+    Token* nextToken();
+
 public:
     Scanner(istream& in);
     ~Scanner() {}

@@ -11,10 +11,14 @@
 *******************************************/
 #include "Scanner.h"
 #include "Token.h"
+#include "component/TokenBuffer.h"
+extern TokenBuffer token_buffer;
+
 #include <cctype>
 #include <set>
 
 using std::set;
+
 
 /*! @class TokenScanner
  *  @brief Base class of all token scanners
@@ -24,9 +28,13 @@ using std::set;
 class TokenScanner
 {
 public:
-    TokenScanner() {}
+    TokenScanner():m_buffer(token_buffer) {}
     virtual ~TokenScanner() {}
-    virtual Token* scan(Scanner& scanner) {return new Token(NULL_TOKEN, scanner.line(), scanner.col());}
+    virtual Token* scan(Scanner& scanner) {
+        Token* token = m_buffer.getToken();
+        token->reset(NULL_TOKEN, scanner.line(), scanner.col());
+        return token;
+    }
     
 public:
     static void initNormalizedTable();
@@ -34,7 +42,11 @@ public:
 
 protected:
     virtual bool stop(char curr) {return false;}
+
+    TokenBuffer& m_buffer;
     static char m_normalized_table[256]; ///< normalized table for characters
+
+
 };
 
 #endif

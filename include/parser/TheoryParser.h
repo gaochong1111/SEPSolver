@@ -1,5 +1,7 @@
+#if !defined(THEORY_PARSER_)
+#define THEORY_PARSER_
 /*******************************************
-*  @file  CommandParserFactory.cpp         * 
+*  @file  TheoryParser.h                   * 
 *  @brief    Brief file description        *
 *                                          *
 *  @author   Chong Gao                     *
@@ -8,20 +10,23 @@
 *                                          *
 *******************************************/
 
-#include "CommandParserFactory.h"
+#include "CommandParser.h"
 
-/*! @brief Brief function description here
+/*! @class TheoryParser
+ *  @brief Brief class description
  *
  *  Detailed description
- *
- * @param sign Parameter description
- * @return Return parameter description
  */
-CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
-    
-    if (sign == "set-logic") {
-        return m_buffer.getSetLogicParser(); 
-    }
+class TheoryParser : public CommandParser
+{
+public:
+    TheoryParser() {}
+    virtual ~TheoryParser() {}
+    virtual parse(Parser& parser);
 
-    return nullptr;
-}
+protected:
+    Scanner m_scanner;
+
+};
+
+#endif

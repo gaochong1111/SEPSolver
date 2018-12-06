@@ -9,28 +9,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-void testScanner() {
-    ifstream fin;
-    fin.open("in.smt");
-    if (!fin.is_open()) {
-        cout << "OPEN FILE FAILED!\n";
-        exit(-1);
-    }
-
-    Scanner scanner(fin);
-    cout <<"(" << scanner.line() << "," << scanner.col() << ") -> ";
-    char ch = 0; 
-    while (scanner.next()) {
-        ch = scanner.curr();
-        cout << ch << endl;
-        cout <<"(" << scanner.line() << "," << scanner.col() << ") -> ";
-    }
-    cout << "EOF" << endl;
-    cout << std::boolalpha << "EOF: " << scanner.iseof() << endl;
-    cout << "CURSOR: " << scanner.line() << "," << scanner.col() << endl;
-    fin.close();
-}
-
 void testTokenScanner(string file_name) {
     ifstream fin;
     fin.open(file_name, std::ios_base::binary);
@@ -56,8 +34,6 @@ void testTokenScanner(string file_name) {
         if (result->type() != EOF_TOKEN)
             result->display();
         cout << endl;
-        delete ts;
-        delete result;
     }
 
     fin.close();

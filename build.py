@@ -3,6 +3,7 @@
 import subprocess
 import os
 import sys
+import json
 
 def exec_cmd(cmd):
     """ run one command and return the output.
@@ -16,65 +17,15 @@ def exec_cmd(cmd):
 
 def init():
     global config
-    config = {}
+    with open("config.json", "r") as fin:
+        config = json.load(fin)
 
-    config["pro_dir"] = "C:\\Users\\jackchong\\Work\\Code\\CPP\\SEPSolver"
-    config["inc_dir"] = "include"
-    config["src_dir"] = "src"
-    config["build_dir"] = config["pro_dir"] + "\\build"
-    config["CC"] = "g++"
-    config["cflags"] = "-Wall -g -O3"
-    config["libflags"] = "-lm"
-    config["objs"] = []
-    config["dst_name"] = "test"
-    config["testcases"] = [
-                #{
-                #    "dst_name": "TestTokenScanner",
-                #    "related_files": 
-                #        [
-                #            "Scanner.cpp", 
-                #            "TokenScanner.cpp",
-                #            "TokenScannerFactory.cpp",
-                #            "CommentScanner.cpp",
-                #            "KeywordScanner.cpp",
-                #            "NumberLiteralScanner.cpp",
-                #            "StringLiteralScanner.cpp",
-                #            "SymbolScanner.cpp",
-                #            "TestScanner.cpp"
-                #        ]
-                #},
-                #{
-                #    "dst_name": "TestException",
-                #    "related_files":
-                #        [
-                #            "TestException.cpp"
-                #        ]
-                #},
-                {
-                    "dst_name": "TestParser",
-                    "related_files":
-                        [
-                            "Scanner.cpp", 
-                            "TokenScanner.cpp",
-                            "TokenScannerFactory.cpp",
-                            "CommentScanner.cpp",
-                            "KeywordScanner.cpp",
-                            "NumberLiteralScanner.cpp",
-                            "StringLiteralScanner.cpp",
-                            "SymbolScanner.cpp",
- 
-                            "CommandParserFactory.cpp",
-                            "Parser.cpp",
-                            "SetLogicParser.cpp",
-                            "TestParser.cpp"
-                        ]
-                }
-
-            ]
     config["testobjs"] = {}
 
     if not os.path.exists(config["build_dir"]):
         os.makedirs(config["build_dir"])
+
+    print(config)
 
 
 def compile_file(src_path, dst_path):
@@ -140,7 +91,7 @@ def get_file_name(path):
     return path[path.rfind("\\")+1:]
 
 
-def filter_and_compile_test_cases(path, src_files):
+def filter_and_compile_test_cases(path):
     """Walk and compile testcases related files.
     """
     abs_path = add_prefix(path, "pro_dir") 
@@ -150,7 +101,8 @@ def filter_and_compile_test_cases(path, src_files):
         file_name = get_file_name(path)
         if file_name  in src_files: 
             dst_path = add_prefix(path, "build_dir") + ".o"
-            compile_file(abs_path, dst_path)
+            if file_name in compile_files:
+                compile_file(abs_path, dst_path)
             config["testobjs"][file_name] = dst_path
     else:
         # dir
@@ -160,7 +112,7 @@ def filter_and_compile_test_cases(path, src_files):
             print("MK dir: " + build_dir)
         # process child
         for child in os.listdir(abs_path):
-            filter_and_compile_test_cases(path+"\\"+child, src_files)
+            filter_and_compile_test_cases(path+"\\"+child)
 
 
 
@@ -200,13 +152,21 @@ def test_walk_src():
 
 def test_filter_test_cases():
     src_dir = config["src_dir"]
+    global src_files
+    global compile_files
     src_files = set()
+    compile_files = set()
+
     for testcase in config["testcases"]:
+        for c_file in testcase["compile_files"]:
+            compile_files.add(c_file)
         for src_file in testcase["related_files"]:
             src_files.add(src_file)
     print(src_files) 
-    filter_and_compile_test_cases(src_dir, src_files)
-    link_testcases()
+    print(compile_files)
+    filter_and_compile_test_cases(src_dir)
+    if config["linked"] == "ON":
+        link_testcases()
 
 
 def run():

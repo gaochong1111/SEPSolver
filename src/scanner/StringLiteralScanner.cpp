@@ -24,10 +24,14 @@ Token* StringLiteralScanner::scan(Scanner& scanner) {
     scanner.clearStrCache();
     while (scanner.next()) {
         if (scanner.curr() == '"') {
-            return new StrToken(STRING_TOKEN, line, col, 
+            StrToken* token = m_buffer.getStrToken();
+            token->reset(STRING_TOKEN, line, col, 
                     string(scanner.getCache().begin(), scanner.getCache().end()));
+            return token;
         }
         scanner.cache(scanner.curr());
     }
-    return new Token(EOF_TOKEN, line, col);
+    Token* token = m_buffer.getToken();
+    token->reset(EOF_TOKEN, line, col);
+    return token;
 }

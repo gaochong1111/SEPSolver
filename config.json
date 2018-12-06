@@ -1,0 +1,51 @@
+{
+    "pro_dir": "C:/Users/jackchong/Work/Code/CPP/SEPSolver",
+    "inc_dir": "include",
+    "src_dir": "src",
+    "build_dir": "C:/Users/jackchong/Work/Code/CPP/SEPSolver/build",
+    "CC": "g++",
+    "cflags": "-Wall -g -O3",
+    "libflags": "-lm",
+    "linked": "OFF",
+    "testcases": [
+        {
+            "dst_name": "TestCommandParser",
+            "related_files": [
+                "Scanner.cpp", 
+                "TokenScanner.cpp",
+                "TokenScannerFactory.cpp",
+                "CommentScanner.cpp",
+                "KeywordScanner.cpp",
+                "NumberLiteralScanner.cpp",
+                "StringLiteralScanner.cpp",
+                "SymbolScanner.cpp",
+                "BufferPool.cpp",
+                "TokenBuffer.cpp",
+                "TokenScannerBuffer.cpp",
+                "CommandParserBuffer.cpp",
+                "CommandParserFactory.cpp",
+                "Parser.cpp",
+                "SetLogicParser.cpp",
+                "TestParser.cpp"
+            ],
+            "compile_files": [
+                "Scanner.cpp", 
+                "TokenScanner.cpp",
+                "TokenScannerFactory.cpp",
+                "CommentScanner.cpp",
+                "KeywordScanner.cpp",
+                "NumberLiteralScanner.cpp",
+                "StringLiteralScanner.cpp",
+                "SymbolScanner.cpp",
+                "BufferPool.cpp",
+                "TokenBuffer.cpp",
+                "TokenScannerBuffer.cpp",
+                "CommandParserBuffer.cpp",
+                "CommandParserFactory.cpp",
+                "Parser.cpp",
+                "SetLogicParser.cpp",
+                "TestParser.cpp"
+            ]
+        }
+    ]
+}
