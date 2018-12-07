@@ -13,6 +13,10 @@
 
 extern TokenScannerFactory tokenScannerFactory;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 /**
 * @brief constructor 
 *

@@ -26,6 +26,9 @@ Token* KeywordScanner::scan(Scanner& scanner) {
 
     while (scanner.next()) {
         if (stop(scanner.curr())) {
+
+            scanner.back(-1);
+
             StrToken* token = m_buffer.getStrToken();
             token->reset(KEYWORD_TOKEN, line, col, 
                     string(scanner.getCache().begin(), scanner.getCache().end()));
@@ -34,6 +37,7 @@ Token* KeywordScanner::scan(Scanner& scanner) {
         }
         scanner.cache(scanner.curr());
     }
+
 
     Token* token = m_buffer.getToken();
     token->reset(EOF_TOKEN, line, col);

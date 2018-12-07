@@ -11,12 +11,9 @@
 *******************************************/
 
 #include <iostream>
-#include <map>
-#include <vector>
-
+#include "Types.h"
 #include "Scanner.h"
 #include "TokenScannerFactory.h"
-// #include "CommandParserFactory.h"
 #include "exception/SemanticException.h"
 #include "exception/SyntaxException.h"
 #include "component/FuncType.h"
@@ -26,11 +23,6 @@
 using std::map;
 using std::vector;
 using std::string;
-
-using SortTable = map<string, SortType>; 
-using FuncTable = map<string, FuncType>;
-using VarStack = vector<Var>;
-using ScopeMarkStack = vector<int>;
 
 /*! @class Parser
  *  @brief Brief class description

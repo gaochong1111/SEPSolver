@@ -6,7 +6,7 @@
     "CC": "g++",
     "cflags": "-Wall -g -O3",
     "libflags": "-lm",
-    "linked": "OFF",
+    "linked": "ON",
     "testcases": [
         {
             "dst_name": "TestCommandParser",
@@ -26,24 +26,13 @@
                 "CommandParserFactory.cpp",
                 "Parser.cpp",
                 "SetLogicParser.cpp",
+                "TheoryParser.cpp",
+                "LogicParser.cpp",
                 "TestParser.cpp"
             ],
             "compile_files": [
-                "Scanner.cpp", 
-                "TokenScanner.cpp",
-                "TokenScannerFactory.cpp",
-                "CommentScanner.cpp",
+                "TheoryParser.cpp",
                 "KeywordScanner.cpp",
-                "NumberLiteralScanner.cpp",
-                "StringLiteralScanner.cpp",
-                "SymbolScanner.cpp",
-                "BufferPool.cpp",
-                "TokenBuffer.cpp",
-                "TokenScannerBuffer.cpp",
-                "CommandParserBuffer.cpp",
-                "CommandParserFactory.cpp",
-                "Parser.cpp",
-                "SetLogicParser.cpp",
                 "TestParser.cpp"
             ]
         }

@@ -41,6 +41,8 @@ public:
         return m_what.c_str(); 
     }
 
+    virtual void setInfo(string info) {m_info = info;}
+
 protected:
     string m_prefix;
     string m_info; ///< Member description

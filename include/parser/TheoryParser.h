@@ -11,22 +11,25 @@
 *******************************************/
 
 #include "CommandParser.h"
+#include "Types.h"
 
 /*! @class TheoryParser
  *  @brief Brief class description
  *
  *  Detailed description
  */
-class TheoryParser : public CommandParser
+class TheoryParser
 {
 public:
-    TheoryParser() {}
+    TheoryParser(string theory): m_theory(theory) {}
     virtual ~TheoryParser() {}
-    virtual parse(Parser& parser);
+    virtual void parse(Parser& parser);
 
 protected:
-    Scanner m_scanner;
-
+    string m_theory; //<<< theory name
+    const string m_prefix="C:/Users/jackchong/Work/Code/CPP/SEPSolver/samples/Theories/";
+    TokenScannerFactory m_factory;
+    TheoryInfo m_info;
 };
 
 #endif
