@@ -20,7 +20,8 @@ using std::string;
 class SortType
 {
 public:
-    SortType() {}
+    SortType(string sort_name, int sort_size)
+        : m_sort_name(sort_name), m_sort_size(sort_size) {}
     virtual ~SortType() {}
 
 protected:

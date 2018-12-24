@@ -38,3 +38,32 @@ void Parser::parse() {
     }
 }
 
+
+void Parser::addSort(string key, SortType* value, int row, int col) {
+    if (m_sort_table.find(key) != m_sort_table.end()) {
+        throw SemanticException("Redefined sort!", row, col); 
+    }
+    m_sort_table[key] = value;
+}
+
+void Parser::addFunc(string key, FuncType* value, int row, int col) {
+    if (m_func_table.find(key) != m_func_table.end()) {
+        throw SemanticException("Redefined function!", row, col); 
+    }
+    m_func_table[key] = value;
+}
+
+
+void Parser::show() {
+    cout << "supported sort: \n";
+    for (auto item : m_sort_table) {
+        cout << item.first << " ";
+    }
+    cout << endl;
+    cout << "supported func: \n";
+    for (auto item: m_func_table) {
+        item.second->show();
+        cout << endl;
+    }
+    cout << endl;
+}

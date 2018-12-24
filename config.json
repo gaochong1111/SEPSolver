@@ -32,7 +32,7 @@
             ],
             "compile_files": [
                 "TheoryParser.cpp",
-                "KeywordScanner.cpp",
+                "NumberLiteralScanner.cpp",
                 "TestParser.cpp"
             ]
         }

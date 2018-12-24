@@ -44,4 +44,6 @@ void SetLogicParser::parse(Parser& parser) {
 
     curr = parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]); 
     // action: init context by logic file
+    
+    parser.show();
 }

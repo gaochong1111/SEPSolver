@@ -49,7 +49,8 @@ Token* NumberLiteralScanner::scan(Scanner& scanner) {
 
     scanner.back(-1); 
 
-    if (scanner.getCache().size() == 1) what = -1;
+    if (scanner.getCache().size() == 1 
+        && scanner.getCache()[0] == '-') what = -1;
     
     if (what == 0) {
         IntToken* token = m_buffer.getIntToken();

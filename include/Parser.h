@@ -33,13 +33,25 @@ class Parser
 {
 public:
     Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) {}
-    virtual ~Parser() {}
+    virtual ~Parser() {
+        for (auto item : m_sort_table) {
+            delete item.second;
+        }
+        for (auto item : m_func_table) {
+            delete item.second;
+        }
+    }
     void parse();
     void skip() {m_scanner.skip();}
     Scanner& getScanner() {return m_scanner;}
     TokenScannerFactory& getFactory() {return m_factory;}
 
     Token* checkNext(TOKEN type, string info) {return m_scanner.checkNext(type, info);}
+
+    void addSort(string key, SortType* value, int row=-1, int col=-1); 
+    void addFunc(string key, FuncType* value, int row=-1, int col=-1); 
+
+    void show();
 
 protected:
     Scanner m_scanner; ///< scanner

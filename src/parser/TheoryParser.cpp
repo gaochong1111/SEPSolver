@@ -11,6 +11,7 @@
 #include "parser/TheoryParser.h"
 #include "Types.h"
 
+
 #include <fstream>
 #include <iostream>
 
@@ -61,7 +62,9 @@ void TheoryParser::parse(Parser& parser) {
                 curr = scanner.checkNext(INT_TOKEN, SYNTAX_ERROR_INFO[INT_TOKEN]);
                 int snum = dynamic_cast<IntToken*>(curr)->value();
                 scanner.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
-                cout << "SORT: " << sort << ", " << snum << endl;
+                // cout << "SORT: " << sort << ", " << snum << endl;
+                SortType* p_sort = new SortType(sort, snum);
+                parser.addSort(sort, p_sort);
             }
             if (curr == nullptr || curr->type() != RIGHT_PAREN) {
                 throw SyntaxException(SYNTAX_ERROR_INFO[RIGHT_PAREN], curr->row(), curr->col());
@@ -75,10 +78,11 @@ void TheoryParser::parse(Parser& parser) {
                 curr = scanner.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
                 string fun_name = dynamic_cast<StrToken*>(curr)->value();
                 bool par_flag = false;
-
+                
+                vector<string> par_list;
                 if (fun_name == "par") {
+                    par_list.clear();
                     scanner.checkNext(LEFT_PAREN, SYNTAX_ERROR_INFO[LEFT_PAREN]);
-                    vector<string> par_list;
                     par_flag = true;
                     // read parameter list
                     while ((curr = scanner.nextToken()) != nullptr 
@@ -91,7 +95,7 @@ void TheoryParser::parse(Parser& parser) {
                     // read fun
                     scanner.checkNext(LEFT_PAREN, SYNTAX_ERROR_INFO[LEFT_PAREN]);
                     curr = scanner.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
-                    string fun_name = dynamic_cast<StrToken*>(curr)->value();
+                    fun_name = dynamic_cast<StrToken*>(curr)->value();
                 }
 
                 vector<string> sort_list;
@@ -100,14 +104,10 @@ void TheoryParser::parse(Parser& parser) {
                     && curr->type() == SYMBOL_TOKEN) {
                     sort_list.push_back(dynamic_cast<StrToken*>(curr)->value());
                 }
-                for (string sort : sort_list) {
-                    cout << sort << " ";
-                }
                 if (curr != nullptr && curr->type() == KEYWORD_TOKEN) {
                     attr = dynamic_cast<StrToken*>(curr)->value(); 
                     curr = scanner.nextToken();
                 }
-                cout << attr << endl;
                 if (curr == nullptr || curr->type() != RIGHT_PAREN) {
                     throw SyntaxException(SYNTAX_ERROR_INFO[RIGHT_PAREN], curr->row(), curr->col());
                 }
@@ -115,7 +115,22 @@ void TheoryParser::parse(Parser& parser) {
                 if (par_flag) {
                     scanner.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
                 }
-                
+
+                FuncType* p_fun = nullptr; 
+                if (par_flag) {
+                    p_fun = new ParFuncType(fun_name);
+                } else {
+                    p_fun = new FuncType(fun_name);
+                }
+
+                for (string par: par_list) {
+                    p_fun->addPar(par);
+                }
+                for (string sort : sort_list) {
+                    p_fun->addArg(sort);
+                }
+                p_fun->setAttr(attr);
+                parser.addFunc(fun_name, p_fun);
             }
             if (curr == nullptr || curr->type() != RIGHT_PAREN) {
                 throw SyntaxException(SYNTAX_ERROR_INFO[RIGHT_PAREN], curr->row(), curr->col());

@@ -52,7 +52,7 @@ Token* Scanner::checkNext(TOKEN type, string info) {
         result = ts->scan(*this);
         
         if (result->type() != type)
-            throw SyntaxException(info, result->row(), result->col());
+            throw SyntaxException(info + " got " + dynamic_cast<StrToken*>(result)->value(), result->row(), result->col());
 
         return result;
     }

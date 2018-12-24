@@ -21,7 +21,7 @@
 class LogicParser
 {
 public:
-    LogicParser(string logic): m_logic(logic) {}
+    LogicParser(string logic): m_logic(logic) {m_theories.push_back("Core");}
     virtual ~LogicParser() {}
     Theories& getTheories() {return m_theories;}
     LogicInfo& getLogicInfo() {return m_info;}
