@@ -20,11 +20,10 @@
 class DeclSortParser: public CommandParser
 {
 public:
-    DeclSortParser();
-    virtual ~DeclSortParser();
+    DeclSortParser() {}
+    virtual ~DeclSortParser() {}
+    virtual void parse(Parser& parser);
 
-protected:
-    m_; ///< Member description
 };
 
 #endif

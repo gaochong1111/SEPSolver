@@ -50,7 +50,7 @@ Token* Scanner::checkNext(TOKEN type, string info) {
         sign = TokenScanner::id(curr());
         ts = tokenScannerFactory.getTokenScanner(sign);
         result = ts->scan(*this);
-        
+
         if (result->type() != type)
             throw SyntaxException(info + " got " + dynamic_cast<StrToken*>(result)->value(), result->row(), result->col());
 

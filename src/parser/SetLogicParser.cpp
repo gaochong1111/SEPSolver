@@ -32,12 +32,12 @@ void SetLogicParser::parse(Parser& parser) {
     //
     string logic = dynamic_cast<StrToken*>(curr)->value(); 
 
-    cout << "logic: " <<  logic << endl;
+    // cout << "logic: " <<  logic << endl;
     LogicParser logic_parser(logic);
     logic_parser.parse(parser);
     Theories& theories = logic_parser.getTheories();
     for (string theory : theories) {
-        cout << "theory: " << theory << endl;
+        // cout << "theory: " << theory << endl;
         TheoryParser theory_parser(theory);
         theory_parser.parse(parser);
     }

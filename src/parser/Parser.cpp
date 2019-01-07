@@ -26,7 +26,8 @@ void Parser::parse() {
     CommandParserFactory factory;
     CommandParser* cmd_parser;
     Token* curr = nullptr;
-    while((curr=checkNext(LEFT_PAREN,SYNTAX_ERROR_INFO[LEFT_PAREN]))!=nullptr) {
+    while((curr=nextToken())!=nullptr
+    && curr->type() == LEFT_PAREN) {
         curr = checkNext(SYMBOL_TOKEN, "command symbol is excepted!");
         cmd_parser = factory.getCommandParser(dynamic_cast<StrToken*>(curr)->value());
         // check
@@ -35,6 +36,9 @@ void Parser::parse() {
         }
         
         cmd_parser->parse(*this);
+    }
+    if (curr == nullptr || curr->type() != EOF_TOKEN) {
+        throw SemanticException("'(' is expected!", curr->row(), curr->col());
     }
 }
 

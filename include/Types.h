@@ -15,6 +15,7 @@
 using std::vector;
 using std::map;
 using std::set;
+using std::pair;
 using std::string;
 
 using std::cout;

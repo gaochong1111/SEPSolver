@@ -1,9 +1,20 @@
 (set-logic QF_SLRDI)
 
-(declare-sort Sls_t 0)
-(declare-fun next() (Field Sls_t Sls_t))
-(declare-fun data() (Field Sls_t Int))
+;(declare-sort Sls_t 0)
+;(declare-fun next() (Field Sls_t Sls_t))
+;(declare-fun data() (Field Sls_t Int))
 
+; Sorts for locations, one by cell sort
+(declare-sort Sls_t 0)
+
+; Types of cells in the heap
+
+(declare-datatypes (
+	(Sls 0)
+	) (
+	((c_Sls_t (next Sls_t) ))
+	)
+)
 
 (define-fun sls ((?E Sls_t) (?S SetInt) (?F Sls_t) (?S1 SetInt)) Space
     (tospace

@@ -22,17 +22,21 @@
                 "BufferPool.cpp",
                 "TokenBuffer.cpp",
                 "TokenScannerBuffer.cpp",
+                "CommandParser.cpp",
                 "CommandParserBuffer.cpp",
                 "CommandParserFactory.cpp",
                 "Parser.cpp",
                 "SetLogicParser.cpp",
+                "DeclDatatypesParser.cpp",
                 "TheoryParser.cpp",
                 "LogicParser.cpp",
+                "DeclSortParser.cpp",
                 "TestParser.cpp"
             ],
             "compile_files": [
-                "TheoryParser.cpp",
-                "NumberLiteralScanner.cpp",
+                "CommandParser.cpp",
+                "Parser.cpp",
+                "DeclDatatypesParser.cpp",
                 "TestParser.cpp"
             ]
         }

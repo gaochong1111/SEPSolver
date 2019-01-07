@@ -21,7 +21,12 @@ CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
     
     if (sign == "set-logic") {
         return m_buffer.getSetLogicParser(); 
+    } else if (sign == "declare-sort") {
+        return m_buffer.getDeclSortParser();
+    } else if (sign == "declare-datatypes") {
+        return m_buffer.getDeclDatatypesParser();
     }
+
 
     return nullptr;
 }

@@ -46,7 +46,8 @@ public:
     Scanner& getScanner() {return m_scanner;}
     TokenScannerFactory& getFactory() {return m_factory;}
 
-    Token* checkNext(TOKEN type, string info) {return m_scanner.checkNext(type, info);}
+    Token* checkNext(TOKEN type, string info) { return m_scanner.checkNext(type, info);}
+    Token* nextToken() {return m_scanner.nextToken();}
 
     void addSort(string key, SortType* value, int row=-1, int col=-1); 
     void addFunc(string key, FuncType* value, int row=-1, int col=-1); 

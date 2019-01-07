@@ -14,6 +14,8 @@
 
 #include "CommandParser.h"
 #include "parser/SetLogicParser.h"
+#include "parser/DeclSortParser.h"
+#include "parser/DeclDatatypesParser.h"
 
 using std::map;
 using std::string;
@@ -32,6 +34,10 @@ public:
     virtual ~CommandParserBuffer(); 
 
     CommandParser* getCommandParser();
+
+    DeclSortParser* getDeclSortParser();
+
+    DeclDatatypesParser* getDeclDatatypesParser();
 
     SetLogicParser* getSetLogicParser();
 
