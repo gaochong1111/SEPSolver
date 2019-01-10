@@ -25,6 +25,10 @@ CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
         return m_buffer.getDeclSortParser();
     } else if (sign == "declare-datatypes") {
         return m_buffer.getDeclDatatypesParser();
+    } else if (sign == "declare-heap") {
+        return m_buffer.getDeclHeapParser();
+    } else if (sign == "define-fun-rec") {
+        return m_buffer.getDefineFunctionParser();
     }
 
 

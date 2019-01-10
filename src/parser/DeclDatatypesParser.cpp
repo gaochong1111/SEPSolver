@@ -24,4 +24,11 @@ void DeclDatatypesParser::parse(Parser& parser) {
 
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
 
+    // action
+    // 1. add sort (st_list.size() == 1)
+    // assert(st_list.size() == 1);
+    SortType* ptr = st_list[0];
+    parser.addSort(ptr->getName(), ptr);
+    // 2. add func_decl (cd_list.size() == 1)
+
 }

@@ -23,6 +23,7 @@ public:
     SortType(string sort_name, int sort_size)
         : m_sort_name(sort_name), m_sort_size(sort_size) {}
     virtual ~SortType() {}
+    string getName() const {return m_sort_name;}
 
 protected:
     string m_sort_name; ///< Member description

@@ -20,11 +20,10 @@
 class DefineFunctionParser: public CommandParser
 {
 public:
-    DefineFunctionParser();
-    virtual ~DefineFunctionParser();
+    DefineFunctionParser() {}
+    virtual ~DefineFunctionParser() {}
+    virtual void parse(Parser& parser);
 
-protected:
-    m_; ///< Member description
 };
 
 #endif

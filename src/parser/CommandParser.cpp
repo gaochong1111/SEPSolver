@@ -99,3 +99,75 @@ void CommandParser::parseConstructorDeclList(Parser& parser, ConstructorDecList&
         throw SyntaxException(SYNTAX_ERROR_INFO[RIGHT_PAREN], curr->row(), curr->col());
     }
 }
+
+SortType* CommandParser::parseSort(Parser& parser) {
+    Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+    string sort = dynamic_cast<StrToken*>(curr)->value();
+    SortType* sort_ptr = parser.getSort(sort);
+    if (sort_ptr == nullptr) {
+        throw SemanticException("sort '" + sort + "' not defined!", curr->row(), curr->col());
+    }
+    return sort_ptr; 
+}
+
+void CommandParser::parseParameters(Parser& parser) {
+    Token* curr = parser.checkNext(LEFT_PAREN, SYNTAX_ERROR_INFO[LEFT_PAREN]);
+    parser.addVarScope();
+    while ((curr = parser.nextToken()) != nullptr
+    && curr->type() == LEFT_PAREN) {
+        curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+        string pname = dynamic_cast<StrToken*>(curr)->value();
+        SortType* sort = parseSort(parser);
+        parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
+        // action
+        Var* pa = new Var(pname, sort);
+        parser.addVar(pa);
+    }
+}
+
+void CommandParser::parseExpr(Parser& parser) {
+    Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+    string op = dynamic_cast<StrToken*>(curr)->value();
+    parser.pushOp(op);
+    // 
+    parser.showEnv();
+    while ((curr = parser.nextToken()) != nullptr) {
+        switch (curr->type()) {
+            case LEFT_PAREN:
+                m_paren_counter ++;
+                parseExpr(parser);
+                break;
+            case RIGHT_PAREN:
+                m_paren_counter --;
+                parser.mkApp();
+                break;
+            case INT_TOKEN:
+                parser.pushArg("INT");
+                break;
+            case FLOAT_TOKEN:
+                parser.pushArg("FLOAT");
+                break;
+            case SYMBOL_TOKEN:
+            {
+                string id = dynamic_cast<StrToken*>(curr)->value();
+                cout << "symbol: " << id << endl;
+                parser.pushArg(id);
+                break;
+            }
+            case STRING_TOKEN:
+            {
+                string str = dynamic_cast<StrToken*>(curr)->value();
+                parser.pushArg(str);
+                break;
+            }
+            default:
+                throw SemanticException("the argument is not valid!", curr->row(), curr->col());
+        }
+
+        cout << "counter: " << m_paren_counter << endl;
+        if (m_paren_counter == 0) break;
+    }
+
+
+}
+

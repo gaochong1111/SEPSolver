@@ -28,15 +28,19 @@
                 "Parser.cpp",
                 "SetLogicParser.cpp",
                 "DeclDatatypesParser.cpp",
+                "DeclHeapParser.cpp",
+                "DefineFunctionParser.cpp",
                 "TheoryParser.cpp",
                 "LogicParser.cpp",
                 "DeclSortParser.cpp",
                 "TestParser.cpp"
             ],
             "compile_files": [
-                "CommandParser.cpp",
                 "Parser.cpp",
-                "DeclDatatypesParser.cpp",
+                "CommandParser.cpp",
+                "CommandParserBuffer.cpp",
+                "CommandParserFactory.cpp",
+                "DefineFunctionParser.cpp",
                 "TestParser.cpp"
             ]
         }

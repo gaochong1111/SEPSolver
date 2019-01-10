@@ -16,6 +16,8 @@
 #include "parser/SetLogicParser.h"
 #include "parser/DeclSortParser.h"
 #include "parser/DeclDatatypesParser.h"
+#include "parser/DeclHeapParser.h"
+#include "parser/DefineFunctionParser.h"
 
 using std::map;
 using std::string;
@@ -35,11 +37,15 @@ public:
 
     CommandParser* getCommandParser();
 
+    DeclHeapParser* getDeclHeapParser();
+
     DeclSortParser* getDeclSortParser();
 
     DeclDatatypesParser* getDeclDatatypesParser();
 
     SetLogicParser* getSetLogicParser();
+
+    DefineFunctionParser* getDefineFunctionParser();
 
 protected:
     map<string, CommandParser*> m_buffer; ///< Member description

@@ -28,11 +28,5 @@ using LogicInfo = map<string, string>;
 using TheoryInfo = map<string, string>;
 using Theories = vector<string>;
 
-// Parser.h
-using SortTable = map<string, SortType*>; 
-using FuncTable = map<string, FuncType*>;
-using VarStack = vector<Var*>;
-using ScopeMarkStack = vector<int>;
-
 
 #endif
