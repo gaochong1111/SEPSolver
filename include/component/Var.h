@@ -18,7 +18,7 @@ public:
     string getName() {return m_var_name;}
     SortType* getSort() {return m_sort_type;}
 
-    void show() {cout << m_var_name << " " << m_sort_type->getName() << " ";}
+    void show() {cout << m_var_name << " "; if (m_sort_type != nullptr) cout << m_sort_type->getName() << " ";}
 
 protected:
     string m_var_name; ///< Member description

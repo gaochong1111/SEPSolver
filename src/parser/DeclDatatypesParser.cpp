@@ -33,8 +33,9 @@ void DeclDatatypesParser::parse(Parser& parser) {
     ConstructorDec cd = cd_list[0];
     FuncType* pf = new FuncType(cd.first);
     for (auto item : cd.second) {
-        pf->addArg(item.first);
+        pf->addArg(item.second->getName());
     }
+    pf->addArg(ptr->getName());
     parser.addFunc(cd.first, pf);
 
 }

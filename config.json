@@ -41,9 +41,9 @@
             "compile_files": [
                 "Parser.cpp",
                 "CommandParser.cpp",
-                "CommandParserBuffer.cpp",
-                "CommandParserFactory.cpp",
                 "FuncType.cpp",
+                "DefineFunctionParser.cpp",
+                "DeclDatatypesParser.cpp",
                 "TestParser.cpp"
             ]
         }

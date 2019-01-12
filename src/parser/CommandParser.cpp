@@ -136,6 +136,8 @@ void CommandParser::_parseExpr(Parser& parser) {
     }
 
     parser.pushOp(op);
+    Var* pv;
+    string key;
     while ((curr = parser.nextToken()) != nullptr) {
         switch (curr->type()) {
             case LEFT_PAREN:
@@ -147,10 +149,14 @@ void CommandParser::_parseExpr(Parser& parser) {
                 parser.mkApp();
                 break;
             case INT_TOKEN:
-                parser.pushArg("INT");
+                key = "int";
+                pv = new Var("INT", parser.getSort(key));
+                parser.pushArg(pv);
                 break;
             case FLOAT_TOKEN:
-                parser.pushArg("FLOAT");
+                key = "float";
+                pv = new Var("FLOAT", parser.getSort(key));
+                parser.pushArg(pv);
                 break;
             case SYMBOL_TOKEN:
             {
@@ -161,13 +167,7 @@ void CommandParser::_parseExpr(Parser& parser) {
                 } else {
                     cout << "not found var: " << id << endl;
                 }
-                parser.pushArg(id);
-                break;
-            }
-            case STRING_TOKEN:
-            {
-                string str = dynamic_cast<StrToken*>(curr)->value();
-                parser.pushArg(str);
+                parser.pushArg(pv);
                 break;
             }
             default:

@@ -69,7 +69,6 @@ void Parser::popVar() {
 
 void Parser::topVar(VarList& vlist) {
     int start = m_scope_mark_stack.back();
-    m_scope_mark_stack.pop_back();
     for (auto pv=m_var_stack.begin()+start; pv != m_var_stack.end(); pv++) {
        vlist.push_back(*pv); 
     }
@@ -78,19 +77,39 @@ void Parser::topVar(VarList& vlist) {
 void Parser::mkApp() {
     if (!m_op_stack.empty()) {
         string op = m_op_stack.back();
+
+        cout << "Before make " << op << endl;
+        showEnv();
+
         int arg_start = m_arg_scope_stack.back();
         ArgTypeList arg_type_list;
+
+        for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
+            arg_type_list.push_back((*pa)->getSort());
+        }
 
         FuncType* pf = getFunc(op);
         if (pf != nullptr) {
             pf->determine(arg_type_list);
         }
 
+        for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
+            string name = (*pa)->getName();
+            if (getVar(name) == nullptr) {
+                delete (*pa);
+            }
+        }
         m_arg_stack.erase(m_arg_stack.begin() + arg_start, m_arg_stack.end());
+        string range = pf->getRange();
+        SortType* range_t = getSort(range);
+        Var* pv = new Var(op, range_t);
 
-        m_arg_stack.push_back(op);
+        m_arg_stack.push_back(pv);
         m_arg_scope_stack.pop_back();
         m_op_stack.pop_back();
+
+        cout << "After make " << op << endl;
+        showEnv();
     }
 }
 
@@ -102,6 +121,7 @@ void Parser::showEnv() {
         item->show();
         cout << endl;
     }
+    cout << "var scope: \n";
     for (auto item : m_scope_mark_stack) {
         cout << item << " ";
     }
@@ -118,7 +138,8 @@ void Parser::showEnv() {
     i = 0;
     for (auto item: m_arg_stack) {
         cout << i++ << ": ";
-        cout << item << endl;
+        item->show();
+        cout << endl;
     }
     for (auto item : m_arg_scope_stack) {
         cout << item << " ";

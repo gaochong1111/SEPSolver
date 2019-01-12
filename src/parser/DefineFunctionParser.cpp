@@ -40,6 +40,7 @@ void DefineFunctionParser::parse(Parser& parser) {
     }
     
     parser.showEnv();
+
     parseExpr(parser);
 
 

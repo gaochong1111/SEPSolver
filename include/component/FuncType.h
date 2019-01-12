@@ -33,6 +33,8 @@ public:
     void setAttr(string attr) {m_attr = attr;}
     virtual ~FuncType() {}
 
+    virtual string getRange() {return m_arg_list.back();}
+
     virtual int determine(ArgTypeList& arg_type_list);
 
     virtual void show(); 
