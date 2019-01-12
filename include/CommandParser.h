@@ -15,8 +15,8 @@
 class Parser;
 
 using SortTypeList = vector<SortType*>;
-using SelectorDec = pair<string, string>;
-using SelectorDecList = vector<pair<string, string>>;
+using SelectorDec = pair<string, SortType*>;
+using SelectorDecList = vector<SelectorDec>;
 using ConstructorDec = pair<string, SelectorDecList>;
 using ConstructorDecList = vector<ConstructorDec>;
 
@@ -42,8 +42,11 @@ protected:
 
     void parseParameters(Parser& parser);
     void parseExpr(Parser& parser);
+    void parseExists(Parser& parser);
     SortType* parseSort(Parser& parser);
 
+private:
+    void _parseExpr(Parser& parser);
 protected:
     int m_paren_counter;
 

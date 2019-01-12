@@ -30,5 +30,11 @@ void DeclDatatypesParser::parse(Parser& parser) {
     SortType* ptr = st_list[0];
     parser.addSort(ptr->getName(), ptr);
     // 2. add func_decl (cd_list.size() == 1)
+    ConstructorDec cd = cd_list[0];
+    FuncType* pf = new FuncType(cd.first);
+    for (auto item : cd.second) {
+        pf->addArg(item.first);
+    }
+    parser.addFunc(cd.first, pf);
 
 }

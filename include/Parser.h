@@ -28,6 +28,8 @@ using OpStack = vector<string>;
 using ArgStack = vector<string>;
 using ArgScopeStack = vector<int>; 
 
+using VarList = vector<Var*>;
+
 /*! @class Parser
  *  @brief Brief class description
  *
@@ -61,6 +63,8 @@ public:
 
     void addVar(Var* pvar) {m_var_stack.push_back(pvar);}
     void addVarScope() {m_scope_mark_stack.push_back(m_var_stack.size());}
+    void popVar();
+    void topVar(VarList& vlist);
 
     Var* getVar(string& name) {for(auto pv=m_var_stack.rbegin(); pv != m_var_stack.rend(); pv++) {if ((*pv)->getName() == name) return *pv;} return nullptr; }
 

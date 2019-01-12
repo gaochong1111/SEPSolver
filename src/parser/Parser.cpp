@@ -57,10 +57,34 @@ void Parser::addFunc(string key, FuncType* value, int row, int col) {
     m_func_table[key] = value;
 }
 
+
+void Parser::popVar() {
+    int start = m_scope_mark_stack.back();
+    m_scope_mark_stack.pop_back();
+    for (auto pv=m_var_stack.begin()+start; pv != m_var_stack.end(); pv++) {
+        delete (*pv);
+    }
+    m_var_stack.erase(m_var_stack.begin()+start, m_var_stack.end());
+}
+
+void Parser::topVar(VarList& vlist) {
+    int start = m_scope_mark_stack.back();
+    m_scope_mark_stack.pop_back();
+    for (auto pv=m_var_stack.begin()+start; pv != m_var_stack.end(); pv++) {
+       vlist.push_back(*pv); 
+    }
+}
+
 void Parser::mkApp() {
     if (!m_op_stack.empty()) {
         string op = m_op_stack.back();
         int arg_start = m_arg_scope_stack.back();
+        ArgTypeList arg_type_list;
+
+        FuncType* pf = getFunc(op);
+        if (pf != nullptr) {
+            pf->determine(arg_type_list);
+        }
 
         m_arg_stack.erase(m_arg_stack.begin() + arg_start, m_arg_stack.end());
 

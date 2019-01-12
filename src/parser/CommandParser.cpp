@@ -52,7 +52,7 @@ void CommandParser::parseSelectorDecl(Parser& parser, SelectorDec& sel_dec) {
     curr = parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
 
     sel_dec.first = key;
-    sel_dec.second = sort;
+    sel_dec.second = parser.getSort(sort);
 }
 
 
@@ -125,17 +125,22 @@ void CommandParser::parseParameters(Parser& parser) {
     }
 }
 
-void CommandParser::parseExpr(Parser& parser) {
+void CommandParser::_parseExpr(Parser& parser) {
     Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
     string op = dynamic_cast<StrToken*>(curr)->value();
+    FuncType* pf =  parser.getFunc(op);
+    if (pf != nullptr) {
+        cout << "found function: "; pf->show(); cout << endl;
+    } else {
+        cout << "not supported op: " << op << endl;
+    }
+
     parser.pushOp(op);
-    // 
-    parser.showEnv();
     while ((curr = parser.nextToken()) != nullptr) {
         switch (curr->type()) {
             case LEFT_PAREN:
                 m_paren_counter ++;
-                parseExpr(parser);
+                _parseExpr(parser);
                 break;
             case RIGHT_PAREN:
                 m_paren_counter --;
@@ -150,7 +155,12 @@ void CommandParser::parseExpr(Parser& parser) {
             case SYMBOL_TOKEN:
             {
                 string id = dynamic_cast<StrToken*>(curr)->value();
-                cout << "symbol: " << id << endl;
+                Var* pv = parser.getVar(id);
+                if (pv != nullptr) {
+                    cout << "found var: "; pv->show(); cout <<endl;
+                } else {
+                    cout << "not found var: " << id << endl;
+                }
                 parser.pushArg(id);
                 break;
             }
@@ -164,10 +174,21 @@ void CommandParser::parseExpr(Parser& parser) {
                 throw SemanticException("the argument is not valid!", curr->row(), curr->col());
         }
 
-        cout << "counter: " << m_paren_counter << endl;
         if (m_paren_counter == 0) break;
     }
+}
 
+void CommandParser::parseExpr(Parser& parser) {
+    parser.checkNext(LEFT_PAREN, SYNTAX_ERROR_INFO[LEFT_PAREN]);
+    m_paren_counter = 1;
+    _parseExpr(parser);
+}
+
+void CommandParser::parseExists(Parser& parser) {
+    parseParameters(parser);
+
+    parseExpr(parser);
+    parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
 
 }
 

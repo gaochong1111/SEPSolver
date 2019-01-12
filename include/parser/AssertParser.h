@@ -21,11 +21,10 @@
 class AssertParser: public CommandParser
 {
 public:
-    AssertParser();
-    virtual ~AssertParser();
+    AssertParser() {}
+    virtual ~AssertParser() {}
+    virtual void parse(Parser& parser);
 
-protected:
-    m_; ///< Member description
 };
 
 #endif

@@ -17,7 +17,17 @@ CommandParserBuffer::CommandParserBuffer() {
     m_buffer["DeclDatatypesParser"] = new DeclDatatypesParser(); 
     m_buffer["DeclHeapParser"] = new DeclHeapParser(); 
     m_buffer["DefineFunctionParser"] = new DefineFunctionParser(); 
+    m_buffer["DeclConstParser"] = new DeclConstParser(); 
+    m_buffer["AssertParser"] = new AssertParser(); 
 
+}
+
+DeclConstParser* CommandParserBuffer::getDeclConstParser() {
+    return dynamic_cast<DeclConstParser*>(m_buffer["DeclConstParser"]);
+}
+
+AssertParser* CommandParserBuffer::getAssertParser() {
+    return dynamic_cast<AssertParser*>(m_buffer["AssertParser"]);
 }
 
 DefineFunctionParser* CommandParserBuffer::getDefineFunctionParser() {

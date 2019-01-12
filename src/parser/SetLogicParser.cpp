@@ -28,7 +28,11 @@ using std::endl;
  * @return Return parameter description
  */
 void SetLogicParser::parse(Parser& parser) {
-    Token* curr = parser.checkNext(STRING_TOKEN, SYNTAX_ERROR_INFO[STRING_TOKEN]);
+    Token* curr = parser.nextToken();
+    // Token* curr = parser.checkNext(STRING_TOKEN, SYNTAX_ERROR_INFO[STRING_TOKEN]);
+    if (curr->type() != STRING_TOKEN && curr->type() != SYMBOL_TOKEN) {
+        throw SemanticException("logic name is expected!", curr->row(), curr->col());
+    }
     //
     string logic = dynamic_cast<StrToken*>(curr)->value(); 
 

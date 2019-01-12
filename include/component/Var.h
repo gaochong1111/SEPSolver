@@ -16,6 +16,7 @@ public:
     virtual ~Var() {}
 
     string getName() {return m_var_name;}
+    SortType* getSort() {return m_sort_type;}
 
     void show() {cout << m_var_name << " " << m_sort_type->getName() << " ";}
 

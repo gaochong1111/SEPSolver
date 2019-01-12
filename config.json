@@ -22,6 +22,7 @@
                 "BufferPool.cpp",
                 "TokenBuffer.cpp",
                 "TokenScannerBuffer.cpp",
+                "FuncType.cpp",
                 "CommandParser.cpp",
                 "CommandParserBuffer.cpp",
                 "CommandParserFactory.cpp",
@@ -30,6 +31,8 @@
                 "DeclDatatypesParser.cpp",
                 "DeclHeapParser.cpp",
                 "DefineFunctionParser.cpp",
+                "DeclConstParser.cpp",
+                "AssertParser.cpp",
                 "TheoryParser.cpp",
                 "LogicParser.cpp",
                 "DeclSortParser.cpp",
@@ -40,7 +43,7 @@
                 "CommandParser.cpp",
                 "CommandParserBuffer.cpp",
                 "CommandParserFactory.cpp",
-                "DefineFunctionParser.cpp",
+                "FuncType.cpp",
                 "TestParser.cpp"
             ]
         }

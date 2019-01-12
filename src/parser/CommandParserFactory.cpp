@@ -29,6 +29,10 @@ CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
         return m_buffer.getDeclHeapParser();
     } else if (sign == "define-fun-rec") {
         return m_buffer.getDefineFunctionParser();
+    } else if (sign == "declare-const") {
+        return m_buffer.getDeclConstParser();
+    } else if (sign == "assert") {
+        return m_buffer.getAssertParser();
     }
 
 

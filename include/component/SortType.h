@@ -10,7 +10,7 @@
 *                                          *
 *******************************************/
 
-using std::string;
+#include "Types.h"
 
 /*! @class SortType
  *  @brief Brief class description

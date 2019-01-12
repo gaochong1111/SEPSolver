@@ -11,19 +11,12 @@
 *******************************************/
 
 #include "component/SortType.h"
-#include <iostream>
-#include <vector>
-#include <set>
-
-using std::string;
-using std::vector;
-using std::set;
-using std::cout;
-using std::endl;
+#include "Types.h"
 
 using ArgTypeList = vector<SortType*>;
 using ParTypeList = vector<string>;
 using ParTypeSet = set<string>;
+using FuncDeclBucket = map<string, string>;
 
 /*! @class FuncType
  *  @brief Brief class description
@@ -40,19 +33,18 @@ public:
     void setAttr(string attr) {m_attr = attr;}
     virtual ~FuncType() {}
 
-    virtual int determine(ArgTypeList& arg_type_list) {
-        // TODO
-        return 0;
-    }
+    virtual int determine(ArgTypeList& arg_type_list);
 
-    virtual void show() {
-        cout << "func: " << m_name << " ";
-        cout << " (";
-        for (auto arg : m_arg_list) {
-            cout << arg <<  " ";
+    virtual void show(); 
+
+protected:
+    void genStr(ArgTypeList& alist, string& result) {
+        ostringstream oss;
+        for (auto item : alist) {
+            oss << item->getName() << "_";
         }
-        cout << " <-ret) ";
-        cout << "(attr: " << m_attr << ") ";
+
+        result = oss.str();
     }
 
 protected:
@@ -60,6 +52,8 @@ protected:
     ParTypeList m_arg_list; ///< parameter list
     string m_attr; ///< associate type
     bool m_determine; ///< arg_list whether determine
+    FuncDeclBucket m_func_decl_bucket; ///< actual function declaration
+    
 };
 
 
@@ -75,23 +69,9 @@ public:
     ParFuncType(string name):FuncType(name, "", false) {}
     virtual ~ParFuncType() {}
     virtual void addPar(string par) {m_par_set.insert(par);}
-    virtual void addArg(string arg) {
-        m_arg_list.push_back(arg);
-        if (m_par_set.find(arg) != m_par_set.end()) {
-            m_par_arg_mark_list.push_back(true);
-        } else {
-            m_par_arg_mark_list.push_back(false);
-        }
-    }
-
-    virtual void show() {
-        FuncType::show();
-        cout << " parameters <";
-        for (auto par : m_par_arg_mark_list) {
-            cout << par << " ";
-        }
-        cout << "> ";
-    }
+    virtual void addArg(string arg); 
+    virtual int determine(ArgTypeList& arg_type_list);
+    virtual void show(); 
 
 protected:
     ParTypeSet m_par_set; ///< Member description

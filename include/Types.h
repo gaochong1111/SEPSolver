@@ -7,16 +7,15 @@
 #include <string>
 
 #include <iostream>
+#include <sstream>
 
-#include "component/FuncType.h"
-#include "component/SortType.h"
-#include "component/Var.h"
 
 using std::vector;
 using std::map;
 using std::set;
 using std::pair;
 using std::string;
+using std::ostringstream;
 
 using std::cout;
 using std::endl;
