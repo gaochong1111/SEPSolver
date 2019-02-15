@@ -5,7 +5,7 @@
     "build_dir": "C:/Users/jackchong/Work/Code/CPP/SEPSolver/build",
     "CC": "g++",
     "cflags": "-Wall -g -O3",
-    "libflags": "-lm",
+    "libflags": "C:/Users/jackchong/Work/Code/CPP/SEPSolver/lib/libz3.lib",
     "linked": "ON",
     "testcases": [
         {
