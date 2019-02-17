@@ -9,8 +9,11 @@
 *******************************************/
 
 #include "CommandParser.h"
+#include "component/Z3Buffer.h"
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+extern z3::context z3_ctx;
+extern Z3Buffer z3_buffer;
 
 SortType* CommandParser::parseSortDecl(Parser& parser) {
     Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
@@ -136,8 +139,6 @@ void CommandParser::_parseExpr(Parser& parser) {
     }
 
     parser.pushOp(op);
-    Var* pv;
-    string key;
     while ((curr = parser.nextToken()) != nullptr) {
         switch (curr->type()) {
             case LEFT_PAREN:
@@ -148,16 +149,18 @@ void CommandParser::_parseExpr(Parser& parser) {
                 m_paren_counter --;
                 parser.mkApp();
                 break;
-            case INT_TOKEN:
-                key = "int";
-                pv = new Var("INT", parser.getSort(key));
-                parser.pushArg(pv);
+            case INT_TOKEN: {
+                int val = dynamic_cast<IntToken*>(curr)->value();
+                expr ie = z3_ctx.int_val(val);
+                parser.pushArg(ie);
                 break;
-            case FLOAT_TOKEN:
-                key = "float";
-                pv = new Var("FLOAT", parser.getSort(key));
-                parser.pushArg(pv);
+            }
+            case FLOAT_TOKEN: {
+                float val = dynamic_cast<FloatToken*>(curr)->value();
+                expr fe = z3_ctx.real_val((int)val); // TODO
+                parser.pushArg(fe);
                 break;
+            }
             case SYMBOL_TOKEN:
             {
                 string id = dynamic_cast<StrToken*>(curr)->value();
@@ -167,7 +170,9 @@ void CommandParser::_parseExpr(Parser& parser) {
                 } else {
                     cout << "not found var: " << id << endl;
                 }
-                parser.pushArg(pv);
+                expr ve = z3_buffer.getVar(pv);
+                cout << "expr: " << ve << endl;
+                parser.pushArg(ve);
                 break;
             }
             default:

@@ -30,9 +30,19 @@ z3::func_decl FuncType::determine(ArgTypeList& arg_type_list, Parser& parser) {
         }
         range = m_arg_list.back();
         arg_list = arg_type_list;
+    } else if (m_attr == "left-assoc") {
+        for (unsigned int i=0; i<arg_type_list.size(); i++) {
+            if (arg_type_list[i]->getName() != m_arg_list[0]) {
+                is_valid = false;
+                break;
+            }
+        }
+        range = m_arg_list.back();
+        arg_list = arg_type_list;
     }
+
     if (!is_valid) {
-        throw SemanticException("the argument of " + fname + "is not matched!");
+        throw SemanticException("the argument of " + fname + " is not matched!");
     }
 
     string key;
@@ -71,6 +81,7 @@ z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list, Parser& parser)
     string fname = m_name;
     bool is_valid = true;
     map<string, string> act_map;
+    
     for (unsigned int i=0; i<arg_type_list.size(); i++) {
         if (m_par_arg_mark_list[i] == 0) {
             if (arg_type_list[i]->getName() != m_arg_list[i]) {
@@ -90,7 +101,7 @@ z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list, Parser& parser)
         }
     }
     if (!is_valid) {
-        throw SemanticException("the argument of " + fname + "is not matched!");
+        throw SemanticException("the argument of " + fname + " is not matched!");
     }
     if (m_par_arg_mark_list.back()) {
         m_arg_list[m_arg_list.size()-1] = act_map[m_arg_list.back()];

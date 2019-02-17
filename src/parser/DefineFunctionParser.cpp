@@ -25,7 +25,7 @@ void DefineFunctionParser::parse(Parser& parser) {
     VarList vlist;
     parser.topVar(vlist);
     for (auto item : vlist) {
-        pf->addArg(item->getName());
+        pf->addArg(item->getSort()->getName());
     }
     pf->addArg(range->getName());
 

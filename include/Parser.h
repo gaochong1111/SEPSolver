@@ -25,7 +25,7 @@ using FuncTable = map<string, FuncType*>;
 using VarStack = vector<Var*>;
 using ScopeMarkStack = vector<int>;
 using OpStack = vector<string>;
-using ArgStack = vector<Var*>;
+using ArgStack = vector<expr>;
 using ArgScopeStack = vector<int>; 
 
 using VarList = vector<Var*>;
@@ -62,7 +62,7 @@ public:
     Var* getVar(string& name) {for(auto pv=m_var_stack.rbegin(); pv != m_var_stack.rend(); pv++) {if ((*pv)->getName() == name) return *pv;} return nullptr; }
 
     void pushOp(string op) {m_op_stack.push_back(op); pushArgScope();}
-    void pushArg(Var* arg) {m_arg_stack.push_back(arg);}
+    void pushArg(expr& arg) {m_arg_stack.push_back(arg);}
     void pushArgScope() {m_arg_scope_stack.push_back(m_arg_stack.size());}
 
     void mkApp();

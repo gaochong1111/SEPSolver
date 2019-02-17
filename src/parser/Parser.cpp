@@ -11,9 +11,12 @@
 #include "Parser.h"
 #include "Types.h"
 #include "CommandParserFactory.h"
+#include "component/Z3Buffer.h"
 
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+extern Z3Buffer z3_buffer;
+extern z3::context z3_ctx;
 
 /*! @brief Brief function description here
  *
@@ -85,28 +88,27 @@ void Parser::mkApp() {
         ArgTypeList arg_type_list;
 
         for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
-            arg_type_list.push_back((*pa)->getSort());
+            string sname = (*pa).get_sort().name().str();
+            arg_type_list.push_back(m_sort_table.at(sname));
         }
 
         FuncType* pf = getFunc(op);
         if (pf != nullptr) {
-            pf->determine(arg_type_list, *this);
-        }
+            //make app
+            func_decl fd = z3_buffer.getFuncDecl(pf, arg_type_list, *this);
 
-        for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
-            string name = (*pa)->getName();
-            if (getVar(name) == nullptr) {
-                delete (*pa);
+            z3::expr_vector args(z3_ctx);
+            for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
+                args.push_back(*pa);
             }
-        }
-        m_arg_stack.erase(m_arg_stack.begin() + arg_start, m_arg_stack.end());
-        string range = pf->getRange();
-        SortType* range_t = getSort(range);
-        Var* pv = new Var(op, range_t);
+            expr res = fd(args);
 
-        m_arg_stack.push_back(pv);
-        m_arg_scope_stack.pop_back();
-        m_op_stack.pop_back();
+            // clear
+            m_arg_stack.erase(m_arg_stack.begin() + arg_start, m_arg_stack.end());
+            m_arg_stack.push_back(res);
+            m_arg_scope_stack.pop_back();
+            m_op_stack.pop_back();
+        }
 
         cout << "After make " << op << endl;
         showEnv();
@@ -138,7 +140,7 @@ void Parser::showEnv() {
     i = 0;
     for (auto item: m_arg_stack) {
         cout << i++ << ": ";
-        item->show();
+        cout << item;
         cout << endl;
     }
     for (auto item : m_arg_scope_stack) {
