@@ -90,7 +90,7 @@ void Parser::mkApp() {
 
         FuncType* pf = getFunc(op);
         if (pf != nullptr) {
-            pf->determine(arg_type_list);
+            pf->determine(arg_type_list, *this);
         }
 
         for (auto pa = m_arg_stack.begin()+arg_start; pa != m_arg_stack.end(); pa++) {
@@ -163,4 +163,13 @@ void Parser::show() {
     cout << endl;
 
     showEnv();
+}
+
+Parser::~Parser() {
+    for (auto item : m_sort_table) {
+        delete item.second;
+    }
+    for (auto item : m_func_table) {
+        delete item.second;
+    }
 }

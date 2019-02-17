@@ -20,7 +20,7 @@
 class SemanticException : public BaseException
 {
 public:
-    SemanticException(string info, int row, int col)
+    SemanticException(string info, int row=-1, int col=-1)
         :BaseException("SEMANTIC ERROR", info, row, col) {}
     virtual ~SemanticException() {}
 

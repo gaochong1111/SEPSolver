@@ -3,6 +3,11 @@
 
 
 #include "Types.h"
+#include "component/SortType.h"
+#include "z3++.h"
+
+using namespace z3;
+
 /*! @class Var
  *  @brief Brief class description
  *
@@ -17,6 +22,7 @@ public:
 
     string getName() {return m_var_name;}
     SortType* getSort() {return m_sort_type;}
+    operator expr();
 
     void show() {cout << m_var_name << " "; if (m_sort_type != nullptr) cout << m_sort_type->getName() << " ";}
 

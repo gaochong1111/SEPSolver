@@ -11,6 +11,9 @@
 *******************************************/
 
 #include "Types.h"
+#include "z3++.h"
+
+using namespace z3;
 
 /*! @class SortType
  *  @brief Brief class description
@@ -24,6 +27,8 @@ public:
         : m_sort_name(sort_name), m_sort_size(sort_size) {}
     virtual ~SortType() {}
     string getName() const {return m_sort_name;}
+
+    operator z3::sort();
 
 protected:
     string m_sort_name; ///< Member description

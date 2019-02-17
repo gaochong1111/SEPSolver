@@ -16,14 +16,13 @@
 
 using std::string;
 using std::to_string;
-using std::exception;
 
 /*! @class BaseException
  *  @brief Brief class description
  *
  *  Detailed description
  */
-class BaseException : public exception
+class BaseException : public std::exception
 {
 public:
     BaseException(string prefix, string info, int row=-1, int col=-1)

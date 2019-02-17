@@ -39,14 +39,7 @@ class Parser
 {
 public:
     Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) { addVarScope();}
-    virtual ~Parser() {
-        for (auto item : m_sort_table) {
-            delete item.second;
-        }
-        for (auto item : m_func_table) {
-            delete item.second;
-        }
-    }
+    virtual ~Parser();
     void parse();
     void skip() {m_scanner.skip();}
     Scanner& getScanner() {return m_scanner;}
