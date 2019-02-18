@@ -75,6 +75,9 @@ Token* Scanner::nextToken() {
         sign = TokenScanner::id(curr());
         ts = tokenScannerFactory.getTokenScanner(sign);
         result = ts->scan(*this);
+        if (result->type() == NULL_TOKEN) {
+            return nextToken();
+        }
         return result;
     }
 
@@ -93,7 +96,7 @@ bool Scanner::next() {
         m_is_eof = true;
         m_curr = 0;
     } else { 
-         if (m_curr == '\n')
+        if (m_curr == '\n')
             newLine();
         else
             m_position ++;

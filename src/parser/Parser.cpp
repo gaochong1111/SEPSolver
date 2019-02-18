@@ -40,7 +40,7 @@ void Parser::parse() {
         
         cmd_parser->parse(*this);
     }
-    if (curr == nullptr || curr->type() != EOF_TOKEN) {
+    if (curr != nullptr && curr->type() != EOF_TOKEN) {
         throw SemanticException("'(' is expected!", curr->row(), curr->col());
     }
 }

@@ -131,6 +131,16 @@ void CommandParser::parseParameters(Parser& parser) {
 void CommandParser::_parseExpr(Parser& parser) {
     Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
     string op = dynamic_cast<StrToken*>(curr)->value();
+    if (op == "_") {
+        // parse (_ emp A B)
+        curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+        // string emp = dynamic_cast<StrToken*>(cur)->value();
+        curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+        curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
+        curr = parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
+        m_paren_counter --;
+        return ;
+    }
     FuncType* pf =  parser.getFunc(op);
     if (pf != nullptr) {
         cout << "found function: "; pf->show(); cout << endl;
