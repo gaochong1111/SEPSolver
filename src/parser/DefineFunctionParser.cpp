@@ -27,7 +27,6 @@ void DefineFunctionParser::parse(Parser& parser) {
     parser.topVar(vpars);
     expr_vector pars(z3_ctx);
     for (auto par : vpars) {
-        par->show() ; cout << endl;
         pars.push_back(z3_buffer.getVar(par));
         pf->addArg(par->getSort()->getName());
     }
