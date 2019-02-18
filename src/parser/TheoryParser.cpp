@@ -25,7 +25,7 @@ void TheoryParser::parse(Parser& parser) {
     ifstream fin;
 
     string abs_file_path = m_prefix + m_theory + ".smt2";
-    // cout << "THEORY path: " << abs_file_path << endl;
+    cout << "THEORY path: " << abs_file_path << endl;
 
     fin.open(abs_file_path, std::ios_base::binary);
 
@@ -120,6 +120,9 @@ void TheoryParser::parse(Parser& parser) {
                 if (par_flag) {
                     p_fun = new ParFuncType(fun_name);
                 } else {
+                    if (fun_name == "-" && attr == "NONE") {
+                        fun_name = "--"; // negative
+                    }
                     p_fun = new FuncType(fun_name);
                 }
 

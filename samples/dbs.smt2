@@ -1,34 +1,33 @@
-(set-logic QF_SHID)
+(set-logic QF_SLIDS)
 
-(declare-sort RefDll_t 0)
-
+(declare-sort RefSls_t 0)
 
 (declare-datatypes (
-	(Dll_t 0)
+	(Sls_t 0)
 	) (
-	((c_Dll_t (next RefDll_t) (prev RefDll_t) ))
+	((c_Sls_t (next RefSls_t) (data Int) ))
 	)
 )
 
 
-(declare-heap (RefDll_t Dll_t) 
+(declare-heap (RefSls_t Sls_t) 
 )
 
-(define-fun-rec dll ((fr RefDll_t)(bk RefDll_t)(pr RefDll_t)(nx RefDll_t)) Bool
+(define-fun-rec sls ((?E RefSls_t) (?S SetInt) (?F RefSls_t) (?S1 RefSls_t)) Bool
 	(or 
 		(and 
-			(= fr nx)
-			(= bk pr)
+			(= ?E ?F)
+			(= ?S ?S1)
 		)
 
-		(exists ((u RefDll_t))
+		(exists ((?X RefSls_t) (?S2 SetInt))
 	 
 		(and 
-			(distinct fr nx)
-			(distinct bk pr)
+			(= ?S (setunion ?S2 (set (min ?S))))
+			(= (min ?S2) (+ (min ?S) 1))
 		(sep 
-			(pto fr (c_Dll_t u pr ))
-			(dll u bk fr nx )
+			(pto ?E (c_Dll_t ?X (min ?S)))
+			(sls ?X ?S2 ?F ?S1)
 		)
 
 		)
@@ -39,30 +38,30 @@
 )
 
 
-(declare-const x_emp RefDll_t)
-(declare-const w_emp RefDll_t)
-(declare-const y_emp RefDll_t)
-(declare-const z_emp RefDll_t)
+(declare-const S1 SetInt)
+(declare-const S2 SetInt)
+(declare-const S3 SetInt)
+(declare-const S4 SetInt)
+(declare-const S SetInt)
+
+(declare-const E RefSls_t)
+(declare-const F RefSls_t)
+(declare-const E1 RefSls_t)
+(declare-const F1 RefSls_t)
 
 (assert 
 		(and 
-			(distinct x_emp z_emp)
-			(distinct y_emp z_emp)
-			(distinct w_emp z_emp)
-		(sep 
-			(pto x_emp (c_Dll_t w_emp z_emp ))
-			(pto w_emp (c_Dll_t y_emp x_emp ))
-			(pto y_emp (c_Dll_t z_emp w_emp ))
-		)
+			(>= (min S2) (+ (min S1) 1))
+			(= (min S1) (+ (max S3) 1))
 
+			(<= (min S4) (+ (min S3) 2))
+			(= (max S2) (+ (min S2) 1))
+		(sep 
+			(sls E S1 F S2)
+			(sls E1 S3 F1 S4)
+		)
 		)
 
 )
 
-(assert (not 
-			(dll x_emp y_emp z_emp z_emp )
-))
-
 (check-sat)
-
-(_ emp RefDll_t Dll_t)

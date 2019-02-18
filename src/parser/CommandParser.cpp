@@ -175,12 +175,13 @@ void CommandParser::_parseExpr(Parser& parser) {
             {
                 string id = dynamic_cast<StrToken*>(curr)->value();
                 Var* pv = parser.getVar(id);
-                //if (pv != nullptr) {
-                //    cout << "found var: "; pv->show(); cout <<endl;
-                //} else {
-                //    cout << "not found var: " << id << endl;
-                //}
+                if (pv != nullptr) {
+                    cout << "found var: "; pv->show(); cout <<endl;
+                } else {
+                    cout << "not found var: " << id << endl;
+                }
                 expr ve = z3_buffer.getVar(pv);
+                cout << "###get buffer: " << ve << endl;
                 parser.pushArg(ve);
                 break;
             }

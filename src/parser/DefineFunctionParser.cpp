@@ -21,21 +21,19 @@ void DefineFunctionParser::parse(Parser& parser) {
     string fname = dynamic_cast<StrToken*>(curr)->value();
     parseParameters(parser);
 
+    FuncType* pf = new FuncType(fname);
+
     VarList vpars;
     parser.topVar(vpars);
     expr_vector pars(z3_ctx);
     for (auto par : vpars) {
+        par->show() ; cout << endl;
         pars.push_back(z3_buffer.getVar(par));
+        pf->addArg(par->getSort()->getName());
     }
 
     SortType* range = parseSort(parser);
 
-    FuncType* pf = new FuncType(fname);
-    VarList vlist;
-    parser.topVar(vlist);
-    for (auto item : vlist) {
-        pf->addArg(item->getSort()->getName());
-    }
     pf->addArg(range->getName());
 
     parser.addFunc(fname, pf);

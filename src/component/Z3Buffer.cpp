@@ -11,17 +11,19 @@
 #include "component/Z3Buffer.h"
 
 sort& Z3Buffer::getSort(SortType* pst) {
-    if (z3_sort_table.find(pst) == z3_sort_table.end()) {
-        z3_sort_table.insert(pair<SortType*, sort>(pst, pst->operator z3::sort()));
+    string key = pst->getName();
+    if (z3_sort_table.find(key) == z3_sort_table.end()) {
+        z3_sort_table.insert(pair<string, sort>(key, pst->operator z3::sort()));
     }
-    return z3_sort_table.at(pst);
+    return z3_sort_table.at(key);
 }
 
 expr& Z3Buffer::getVar(Var* pvar) {
-    if (z3_var_table.find(pvar) == z3_var_table.end()) {
-        z3_var_table.insert(pair<Var*, expr>(pvar, pvar->operator z3::expr()));
+    string key = pvar->getName() + "&" + pvar->getSort()->getName();
+    if (z3_var_table.find(key) == z3_var_table.end()) {
+        z3_var_table.insert(pair<string, expr>(key, pvar->operator z3::expr()));
     }
-    return z3_var_table.at(pvar);
+    return z3_var_table.at(key);
 }
 
 func_decl Z3Buffer::getFuncDecl(FuncType* pft, ArgTypeList& arg_type_list, Parser& parser) {

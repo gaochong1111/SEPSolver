@@ -31,8 +31,8 @@ public:
     func_decl getFuncDecl(FuncType* pft, ArgTypeList& arg_type_list, Parser& parser);
 
 protected:
-    map<SortType*, sort> z3_sort_table;
-    map<Var*, expr> z3_var_table;
+    map<string, sort> z3_sort_table;
+    map<string, expr> z3_var_table;
     map<string, func_decl> z3_fun_table; 
 };
 
