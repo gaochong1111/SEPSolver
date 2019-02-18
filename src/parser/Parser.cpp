@@ -77,6 +77,10 @@ void Parser::topVar(VarList& vlist) {
     }
 }
 
+void Parser::popArg() {
+    m_arg_stack.pop_back();
+}
+
 void Parser::mkApp() {
     if (!m_op_stack.empty()) {
         string op = m_op_stack.back();

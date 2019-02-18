@@ -1,7 +1,5 @@
-#if !defined(CHECKSATPARSER_)
-#define CHECKSATPARSE_R
 /*******************************************
-*  @file  CheckSatParser.h                 *
+*  @file  CheckSatParser.cpp               *
 *  @brief  Brief file description          *
 *                                          *
 *  @author   Chong Gao                     *
@@ -9,13 +7,12 @@
 *  @date     2019-2-18                     *
 *                                          *
 *******************************************/
-#include "CommandParser.h"
 
-class CheckSatParser : public CommandParser {
-public:
-    CheckSatParser() {}
-    virtual ~CheckSatParser() {}
+#include "parser/CheckSatParser.h"
 
-    virtual void parse(Parser& parser);
-};
-#endif
+extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+
+void CheckSatParser::parse(Parser& parser) {
+    parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
+    cout << "Solver...." << endl;
+}

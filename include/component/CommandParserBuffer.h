@@ -20,6 +20,7 @@
 #include "parser/DefineFunctionParser.h"
 #include "parser/DeclConstParser.h"
 #include "parser/AssertParser.h"
+#include "parser/CheckSatParser.h"
 
 using std::map;
 using std::string;
@@ -52,6 +53,8 @@ public:
     DeclConstParser* getDeclConstParser();
 
     AssertParser* getAssertParser();
+
+    CheckSatParser* getCheckSatParser();
 
 protected:
     map<string, CommandParser*> m_buffer; ///< Member description

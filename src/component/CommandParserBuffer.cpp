@@ -19,7 +19,12 @@ CommandParserBuffer::CommandParserBuffer() {
     m_buffer["DefineFunctionParser"] = new DefineFunctionParser(); 
     m_buffer["DeclConstParser"] = new DeclConstParser(); 
     m_buffer["AssertParser"] = new AssertParser(); 
+    m_buffer["CheckSatParser"] = new CheckSatParser(); 
 
+}
+
+CheckSatParser* CommandParserBuffer::getCheckSatParser() {
+    return dynamic_cast<CheckSatParser*>(m_buffer["CheckSatParser"]);
 }
 
 DeclConstParser* CommandParserBuffer::getDeclConstParser() {

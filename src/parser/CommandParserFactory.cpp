@@ -33,8 +33,9 @@ CommandParser* CommandParserFactory::getCommandParser(const string& sign) {
         return m_buffer.getDeclConstParser();
     } else if (sign == "assert") {
         return m_buffer.getAssertParser();
+    } else if (sign == "check-sat") {
+        return m_buffer.getCheckSatParser();
     }
-
 
     return nullptr;
 }

@@ -38,7 +38,7 @@ using VarList = vector<Var*>;
 class Parser
 {
 public:
-    Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) { addVarScope();}
+    Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) { addVarScope(); }
     virtual ~Parser();
     void parse();
     void skip() {m_scanner.skip();}
@@ -63,6 +63,8 @@ public:
 
     void pushOp(string op) {m_op_stack.push_back(op); pushArgScope();}
     void pushArg(expr& arg) {m_arg_stack.push_back(arg);}
+    void popArg();
+    expr topArg() {return m_arg_stack.back();}
     void pushArgScope() {m_arg_scope_stack.push_back(m_arg_stack.size());}
 
     void mkApp();

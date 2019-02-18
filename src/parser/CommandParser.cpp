@@ -171,7 +171,6 @@ void CommandParser::_parseExpr(Parser& parser) {
                     cout << "not found var: " << id << endl;
                 }
                 expr ve = z3_buffer.getVar(pv);
-                cout << "expr: " << ve << endl;
                 parser.pushArg(ve);
                 break;
             }
@@ -192,8 +191,21 @@ void CommandParser::parseExpr(Parser& parser) {
 void CommandParser::parseExists(Parser& parser) {
     parseParameters(parser);
 
+    VarList vlist;
+    parser.topVar(vlist);
+
+    expr_vector evars(z3_ctx);
+    for (auto ve : vlist) {
+        evars.push_back(z3_buffer.getVar(ve));
+    }
+
     parseExpr(parser);
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
-
+    
+    // exists
+    expr ebody = parser.topArg();
+    parser.popArg();
+    expr rec = exists(evars, ebody);
+    parser.pushArg(rec);
 }
 

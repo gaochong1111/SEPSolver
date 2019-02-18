@@ -9,17 +9,26 @@
 *******************************************/
 
 #include "parser/DefineFunctionParser.h"
+#include "component/Z3Buffer.h"
+#include "component/Predicate.h"
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+extern Z3Buffer z3_buffer; 
+extern z3::context z3_ctx;
 
 void DefineFunctionParser::parse(Parser& parser) {
     Token* curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
     string fname = dynamic_cast<StrToken*>(curr)->value();
     parseParameters(parser);
 
-    SortType* range = parseSort(parser);
+    VarList vpars;
+    parser.topVar(vpars);
+    expr_vector pars(z3_ctx);
+    for (auto par : vpars) {
+        pars.push_back(z3_buffer.getVar(par));
+    }
 
-    cout << "range: " << range->getName() << endl;
+    SortType* range = parseSort(parser);
 
     FuncType* pf = new FuncType(fname);
     VarList vlist;
@@ -40,10 +49,11 @@ void DefineFunctionParser::parse(Parser& parser) {
     }
     
     parser.showEnv();
-
+    // base rule
     parseExpr(parser);
 
-
+    expr base = parser.topArg();
+    parser.popArg();
 
     parser.checkNext(LEFT_PAREN, SYNTAX_ERROR_INFO[LEFT_PAREN]);
     curr = parser.checkNext(SYMBOL_TOKEN, SYNTAX_ERROR_INFO[SYMBOL_TOKEN]);
@@ -51,8 +61,11 @@ void DefineFunctionParser::parse(Parser& parser) {
     if (exists_op != "exists") {
         throw SemanticException("the rule must be exists function!", curr->row(), curr->col());
     }
-
+    // recursive rule
     parseExists(parser);
+
+    z3::expr rec = parser.topArg();
+    parser.popArg();
 
     parser.showEnv();
 
@@ -66,6 +79,10 @@ void DefineFunctionParser::parse(Parser& parser) {
     // action 
     parser.popVar();
     parser.showEnv();
+
+    // TODO generate predicate definition
+
+    Predicate pred(pars, base, rec);
+    pred.show();
     
 }
-
