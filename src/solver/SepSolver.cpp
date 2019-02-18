@@ -1,5 +1,5 @@
 /*******************************************
-*  @file  CheckSatParser.cpp               *
+*  @file  SepSolver.cpp                    *
 *  @brief  Brief file description          *
 *                                          *
 *  @author   Chong Gao                     *
@@ -8,17 +8,9 @@
 *                                          *
 *******************************************/
 
-#include "parser/CheckSatParser.h"
 #include "solver/SepSolver.h"
+#include "Types.h"
 
-extern SyntaxErrorTable SYNTAX_ERROR_INFO;
-
-void CheckSatParser::parse(Parser& parser) {
-    parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
-
-    SepSolver ss;
-    Problem* problem = parser.getProblem();
-    problem->show();
-    ss.setProblem(problem);
-    ss.solve();
+void SepSolver::solve() {
+    cout << "solving ...\n"; 
 }

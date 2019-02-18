@@ -15,8 +15,6 @@ extern z3::context z3_ctx;
 extern Z3Buffer z3_buffer;
 
 Var::operator z3::expr() {
-    cout << "type trans.\n";
     sort& s = z3_buffer.getSort(m_sort_type);
-    cout << s << endl;
     return z3_ctx.constant(m_var_name.c_str(), s); 
 }

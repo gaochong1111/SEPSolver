@@ -19,6 +19,7 @@
 #include "component/FuncType.h"
 #include "component/SortType.h"
 #include "component/Var.h"
+#include "component/Problem.h"
 
 using SortTable = map<string, SortType*>; 
 using FuncTable = map<string, FuncType*>;
@@ -67,11 +68,20 @@ public:
     expr topArg() {return m_arg_stack.back();}
     void pushArgScope() {m_arg_scope_stack.push_back(m_arg_stack.size());}
 
+    // fill problem
+    void addPredicate(Predicate* pred) {m_problem.setPredicate(pred);} 
+    void addPhi(expr& phi) {m_problem.setPhi(phi);}
+    void addPsi(expr& psi) {m_problem.setPsi(psi);}
+    Problem* getProblem() {return &m_problem;}
+
     void mkApp();
 
     void show();
 
     void showEnv();
+
+    void showProblem() {m_problem.show();}
+
 
 protected:
     Scanner m_scanner; ///< scanner
@@ -85,6 +95,8 @@ protected:
     OpStack m_op_stack; ///< opration stack
     ArgStack m_arg_stack; ///< argument stack
     ArgScopeStack m_arg_scope_stack; ///< argument scope stack
+
+    Problem m_problem; ///< problem description
 
 };
 

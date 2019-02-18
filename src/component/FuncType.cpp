@@ -45,10 +45,10 @@ z3::func_decl FuncType::determine(ArgTypeList& arg_type_list, Parser& parser) {
         throw SemanticException("the argument of " + fname + " is not matched!");
     }
 
-    string key;
-    genStr(arg_list, key);
-    m_func_decl_bucket[key] = (fname+"_"+key+"_"+range);
-    cout << "fun_decl: " << fname << "_" << key << "_" << range << endl; 
+    // string key;
+    // genStr(arg_list, key);
+    // m_func_decl_bucket[key] = (fname+"_"+key+"_"+range);
+    // cout << "fun_decl: " << fname << "_" << key << "_" << range << endl; 
     // mk
     z3::sort_vector svec(z3_ctx);
     for (auto arg : arg_list) {
@@ -110,10 +110,10 @@ z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list, Parser& parser)
     string range = m_arg_list.back();
     ArgTypeList arg_list = arg_type_list;
 
-    string key;
-    genStr(arg_list, key);
+    // string key;
+    // genStr(arg_list, key);
     // m_func_decl_bucket[key] = (fname+"_"+key+"_"+range);
-    cout << "fun_decl: " << fname << "_" << key << "_" << range << endl; 
+    // cout << "fun_decl: " << fname << "_" << key << "_" << range << endl; 
     // mk
     z3::sort_vector svec(z3_ctx);
     for (auto arg : arg_list) {

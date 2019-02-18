@@ -19,6 +19,7 @@ void DeclHeapParser::parse(Parser& parser) {
     SortType* sort_dst = parseSort(parser);
 
     // cout << sort_src->getName() << "->" << sort_dst->getName() << endl;
+    parser.getProblem()->setHeap(sort_src, sort_dst);
 
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);

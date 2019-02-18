@@ -85,8 +85,8 @@ void Parser::mkApp() {
     if (!m_op_stack.empty()) {
         string op = m_op_stack.back();
 
-        cout << "Before make " << op << endl;
-        showEnv();
+        // cout << "Before make " << op << endl;
+        // showEnv();
 
         int arg_start = m_arg_scope_stack.back();
         ArgTypeList arg_type_list;
@@ -114,8 +114,8 @@ void Parser::mkApp() {
             m_op_stack.pop_back();
         }
 
-        cout << "After make " << op << endl;
-        showEnv();
+        // cout << "After make " << op << endl;
+        // showEnv();
     }
 }
 

@@ -13,7 +13,6 @@
 extern z3::context z3_ctx;
 
 SortType::operator z3::sort() {
-    cout << "sort type trans\n";
     if (m_sort_name == "Bool") {
         return z3_ctx.bool_sort();
     } else if (m_sort_name == "Int") {

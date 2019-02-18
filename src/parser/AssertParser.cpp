@@ -9,6 +9,7 @@
 *******************************************/
 
 #include "parser/AssertParser.h"
+#include "z3++.h"
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
 
@@ -18,5 +19,12 @@ void AssertParser::parse(Parser& parser) {
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
 
     // action
+    z3::expr phi = parser.topArg();
+    parser.popArg();
 
+    if (phi.is_app() && phi.decl().name().str() == "not") {
+        parser.addPsi(phi);
+    } else {
+        parser.addPhi(phi);
+    }
 }

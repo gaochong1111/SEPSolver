@@ -5,7 +5,7 @@ include Make.properties
 #---------------------------------------
 # FILES
 #---------------------------------------
-SUBDIRS=component parser scanner
+SUBDIRS=component parser scanner solver
 SRCS=$(foreach sub, $(SUBDIRS), $(wildcard $(SRCDIR)$(sub)/*.cpp))
 OBJS=$(foreach sub, $(SUBDIRS), $(addprefix $(OBJSDIR)$(sub)/, $(notdir $(patsubst %.cpp, %.o, $(wildcard $(SRCDIR)$(sub)/*.cpp)))))
 TPOBJ=$(OBJSDIR)TestParser.o

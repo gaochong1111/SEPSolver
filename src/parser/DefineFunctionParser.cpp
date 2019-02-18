@@ -48,7 +48,7 @@ void DefineFunctionParser::parse(Parser& parser) {
         throw SemanticException("the body must be 'or' function!", curr->row(), curr->col());
     }
     
-    parser.showEnv();
+    // parser.showEnv();
     // base rule
     parseExpr(parser);
 
@@ -67,22 +67,21 @@ void DefineFunctionParser::parse(Parser& parser) {
     z3::expr rec = parser.topArg();
     parser.popArg();
 
-    parser.showEnv();
+    // parser.showEnv();
 
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
     // action
     parser.popVar();
 
-    parser.showEnv();
+    // parser.showEnv();
     
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
     // action 
     parser.popVar();
-    parser.showEnv();
+    // parser.showEnv();
 
     // TODO generate predicate definition
 
-    Predicate pred(pars, base, rec);
-    pred.show();
-    
+    Predicate*  pred = new Predicate(pars, base, rec);
+    parser.addPredicate(pred);
 }

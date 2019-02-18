@@ -141,12 +141,12 @@ void CommandParser::_parseExpr(Parser& parser) {
         m_paren_counter --;
         return ;
     }
-    FuncType* pf =  parser.getFunc(op);
-    if (pf != nullptr) {
-        cout << "found function: "; pf->show(); cout << endl;
-    } else {
-        cout << "not supported op: " << op << endl;
-    }
+//    FuncType* pf =  parser.getFunc(op);
+//    if (pf != nullptr) {
+//        cout << "found function: "; pf->show(); cout << endl;
+//    } else {
+//        cout << "not supported op: " << op << endl;
+//    }
 
     parser.pushOp(op);
     while ((curr = parser.nextToken()) != nullptr) {
@@ -175,11 +175,11 @@ void CommandParser::_parseExpr(Parser& parser) {
             {
                 string id = dynamic_cast<StrToken*>(curr)->value();
                 Var* pv = parser.getVar(id);
-                if (pv != nullptr) {
-                    cout << "found var: "; pv->show(); cout <<endl;
-                } else {
-                    cout << "not found var: " << id << endl;
-                }
+                //if (pv != nullptr) {
+                //    cout << "found var: "; pv->show(); cout <<endl;
+                //} else {
+                //    cout << "not found var: " << id << endl;
+                //}
                 expr ve = z3_buffer.getVar(pv);
                 parser.pushArg(ve);
                 break;
