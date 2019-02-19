@@ -18,6 +18,7 @@
 		(and 
 			(= ?E ?F)
 			(= ?S ?S1)
+			(_ emp RefSls_t Sls_t)
 		)
 
 		(exists ((?X RefSls_t) (?S2 SetInt))
