@@ -24,9 +24,20 @@ public:
     void getGamma(expr_vector& gamma);
     void getX(expr_vector& x);
 
-    expr getDeltaP();
+    bool getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items);
+    expr getTr();
 
     void show();
+
+private:
+    expr getDeltaP();
+    expr getUnfoldDeltap2(expr_vector& svars);
+
+    int getCard(expr& var, expr_vector& svars);
+    void setMatrix(int (&matrix)[4][4], int i, int j, int val);
+    bool floyd(int (&matrix)[4][4]);
+    expr getIJExpr(int (&matrix)[4][4], int i, int j, expr_vector& svars);
+    expr getIExpr(int i, expr_vector& svars);
 
 protected:
     expr_vector m_pars;
@@ -36,6 +47,7 @@ private:
     expr m_data;
     expr m_pto;
     expr m_rec_app;
+    expr m_deltap;
 };
 
 #endif

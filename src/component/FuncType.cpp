@@ -15,7 +15,7 @@
 extern z3::context z3_ctx;
 extern Z3Buffer z3_buffer;
 
-z3::func_decl FuncType::determine(ArgTypeList& arg_type_list, Parser& parser) {
+z3::func_decl FuncType::determine(ArgTypeList& arg_type_list){
     // Todo
     string fname = m_name;
     bool is_valid = true;
@@ -54,7 +54,8 @@ z3::func_decl FuncType::determine(ArgTypeList& arg_type_list, Parser& parser) {
     for (auto arg : arg_list) {
         svec.push_back(z3_buffer.getSort(arg));
     }
-    z3::sort srange = z3_buffer.getSort(parser.getSort(range));
+    z3::sort srange = z3_buffer.getSort(range);
+    cout << "srange: " << range << " --> " <<  srange << endl;
     return z3_ctx.function(fname.c_str(), svec, srange);
 }
 
@@ -77,7 +78,7 @@ void ParFuncType::addArg(string arg) {
     }
 }
 
-z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list, Parser& parser) {
+z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list) {
     string fname = m_name;
     bool is_valid = true;
     map<string, string> act_map;
@@ -119,7 +120,7 @@ z3::func_decl ParFuncType::determine(ArgTypeList& arg_type_list, Parser& parser)
     for (auto arg : arg_list) {
         svec.push_back(z3_buffer.getSort(arg));
     }
-    z3::sort srange = z3_buffer.getSort(parser.getSort(range));
+    z3::sort srange = z3_buffer.getSort(range);
     return z3_ctx.function(fname.c_str(), svec, srange);
 
 }

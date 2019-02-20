@@ -10,8 +10,10 @@
 
 #include "parser/DeclSortParser.h"
 #include "component/SortType.h"
+#include "component/Z3Buffer.h"
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+extern Z3Buffer z3_buffer;
 
 /*! @brief Brief function description here
  *
@@ -33,6 +35,6 @@ void DeclSortParser::parse(Parser& parser) {
 
     SortType* p_sort = new SortType(sort, snum);
     parser.addSort(sort, p_sort, row, col);
-
+    z3_buffer.getSort(p_sort);
 }
 

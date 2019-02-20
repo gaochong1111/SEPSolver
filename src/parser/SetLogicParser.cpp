@@ -11,10 +11,11 @@
 #include "parser/SetLogicParser.h"
 #include "parser/LogicParser.h"
 #include "parser/TheoryParser.h"
+#include "component/Z3Buffer.h"
 #include <iostream>
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
-
+extern Z3Buffer z3_buffer;
 
 using std::cout;
 using std::endl;
@@ -48,6 +49,5 @@ void SetLogicParser::parse(Parser& parser) {
 
     curr = parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]); 
     // action: init context by logic file
-    
-    // parser.show();
+    z3_buffer.init(parser);
 }

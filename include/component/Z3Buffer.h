@@ -26,9 +26,15 @@ public:
 
     sort& getSort(SortType* pst); 
 
+    void init(Parser& parser);
+
     expr& getVar(Var* pvar);
 
     func_decl getFuncDecl(FuncType* pft, ArgTypeList& arg_type_list, Parser& parser);
+    func_decl getFuncDecl(string key);
+    sort getSort(string key);
+
+    void show();
 
 protected:
     map<string, sort> z3_sort_table;

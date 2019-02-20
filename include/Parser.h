@@ -97,7 +97,7 @@ protected:
     ArgScopeStack m_arg_scope_stack; ///< argument scope stack
 
     Problem m_problem; ///< problem description
-
+    friend class Z3Buffer;
 };
 
 #endif

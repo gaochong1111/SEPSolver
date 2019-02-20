@@ -14,11 +14,6 @@
 #include "Types.h"
 #include "z3++.h"
 
-class FuncType;
-class Parser;
-
-#include "Parser.h"
-
 
 using ArgTypeList = vector<SortType*>;
 using ParTypeList = vector<string>;
@@ -42,8 +37,11 @@ public:
 
     virtual string getName() {return m_name;}
     virtual string getRange() {return m_arg_list.back();}
+    virtual bool isDetermine() {return m_determine;}
 
-    virtual z3::func_decl determine(ArgTypeList& arg_type_list, Parser& parser);
+    virtual z3::func_decl determine(ArgTypeList& arg_type_list);
+
+    ParTypeList& getArgList() { return m_arg_list; }
 
     virtual void show(); 
 
@@ -80,7 +78,7 @@ public:
     virtual ~ParFuncType() {}
     virtual void addPar(string par) {m_par_set.insert(par);}
     virtual void addArg(string arg); 
-    virtual z3::func_decl determine(ArgTypeList& arg_type_list, Parser& parser);
+    virtual z3::func_decl determine(ArgTypeList& arg_type_list);
     virtual void show(); 
 
 protected:
