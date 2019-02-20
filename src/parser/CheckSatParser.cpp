@@ -10,11 +10,15 @@
 
 #include "parser/CheckSatParser.h"
 #include "solver/SepSolver.h"
+#include "component/Z3Buffer.h"
 
 extern SyntaxErrorTable SYNTAX_ERROR_INFO;
+extern Z3Buffer z3_buffer;
 
 void CheckSatParser::parse(Parser& parser) {
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
+
+    z3_buffer.setVarEnv(parser);
 
     SepSolver ss;
     Problem* problem = parser.getProblem();

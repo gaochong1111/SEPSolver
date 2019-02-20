@@ -26,7 +26,17 @@ public:
 
     void setHeap(SortType* src, SortType* dst) {m_heap.first = src; m_heap.second = dst;}
 
+    expr getAbsPhi();
+
     void show();
+
+protected:
+    expr getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars);
+    expr getSpatialStar(expr_vector& new_bools);
+
+private:
+    int getSuffixIdx(string& str);
+
 protected:
     Predicate* m_pred;
     z3::expr m_phi;

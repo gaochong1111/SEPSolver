@@ -13,6 +13,7 @@
 extern z3::context z3_ctx;
 
 void Z3Buffer::init(Parser& parser) {
+
     for (auto kv : parser.m_sort_table) {
         z3_sort_table.insert(pair<string, sort>(kv.first, kv.second->operator z3::sort()));
     }
@@ -31,6 +32,14 @@ void Z3Buffer::init(Parser& parser) {
             string key = oss.str();
             z3_fun_table.insert(pair<string, func_decl>(key, kv.second->determine(arg_list)));
         }
+    }
+
+    z3_var_table.insert(pair<string, expr>("emptyset", z3_ctx.constant("emptyset", z3_sort_table.at("SetInt"))));
+}
+
+void Z3Buffer::setVarEnv(Parser& parser) {
+    for (auto v : parser.m_var_stack) {
+        m_var_env.push_back(getVar(v));
     }
 }
 
@@ -79,13 +88,96 @@ func_decl Z3Buffer::getFuncDecl(string key) {
     return z3_fun_table.at(key);
 }
 
+expr Z3Buffer::getEmptyset() {
+    return z3_var_table.at("emptyset"); 
+}
+
+expr Z3Buffer::getSetinterset(expr& S1, expr& S2) {
+    func_decl setinterset = z3_fun_table.at("setintersect_SetInt_SetInt_SetInt");
+    expr_vector args(z3_ctx);
+    args.push_back(S1);
+    args.push_back(S2);
+    return setinterset(args);
+}
+
+expr Z3Buffer::getSetunion(expr& S1, expr& S2) {
+    func_decl setunion = z3_fun_table.at("setunion_SetInt_SetInt_SetInt");
+    expr_vector args(z3_ctx);
+    args.push_back(S1);
+    args.push_back(S2);
+    return setunion(args);
+}
+
+expr Z3Buffer::getSet(expr& i) {
+    func_decl setd = z3_fun_table.at("set_Int_SetInt");
+    expr_vector args(z3_ctx);
+    args.push_back(i);
+    return setd(args);
+}
+
+expr Z3Buffer::getSetminus(expr& S1, expr& S2) {
+    func_decl setminus = z3_fun_table.at("setminus_SetInt_SetInt_SetInt");
+    expr_vector args(z3_ctx);
+    args.push_back(S1);
+    args.push_back(S2);
+    return setminus(args);
+}
+
+
+expr Z3Buffer::getSubset(expr& S1, expr& S2) {
+    func_decl subset = z3_fun_table.at("subset_SetInt_SetInt_Bool");
+
+    expr_vector args(z3_ctx);
+    args.push_back(S1);
+    args.push_back(S2);
+    return subset(args);
+}
+
+expr Z3Buffer::getBelongsto(expr& i, expr& S) {
+    func_decl belongsto = z3_fun_table.at("belongsto_Int_SetInt_Bool");
+
+    expr_vector args(z3_ctx);
+    args.push_back(i);
+    args.push_back(S);
+    return belongsto(args);
+}
+
+expr Z3Buffer::getMax(expr& S) {
+    func_decl max_f = z3_fun_table.at("max_SetInt_Int");
+
+    expr_vector args(z3_ctx);
+    args.push_back(S);
+    return max_f(args);
+}
+
+expr Z3Buffer::getMin(expr& S) {
+    func_decl min_f = z3_fun_table.at("min_SetInt_Int");
+
+    expr_vector args(z3_ctx);
+    args.push_back(S);
+    return min_f(args);
+}
+
 void Z3Buffer::show() {
+    cout << "var table: \n";
+    for (auto kv : z3_var_table) {
+        cout << kv.first << " --> " << kv.second <<endl;
+    }
+    cout <<endl;
     cout << "sort table: \n";
     for (auto kv : z3_sort_table) {
         cout << kv.first << " --> " << kv.second << endl;
     }
+    cout <<endl;
     cout << "function table: \n";
     for (auto kv : z3_fun_table) {
         cout << kv.first << " --> " << kv.second << endl;
     }
+    cout << endl;
+
+    cout << "var env: \n";
+    for (auto v : m_var_env) {
+        cout << v << "  ";
+    }
+    cout << endl;
 }

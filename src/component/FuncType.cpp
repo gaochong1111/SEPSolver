@@ -55,7 +55,6 @@ z3::func_decl FuncType::determine(ArgTypeList& arg_type_list){
         svec.push_back(z3_buffer.getSort(arg));
     }
     z3::sort srange = z3_buffer.getSort(range);
-    cout << "srange: " << range << " --> " <<  srange << endl;
     return z3_ctx.function(fname.c_str(), svec, srange);
 }
 

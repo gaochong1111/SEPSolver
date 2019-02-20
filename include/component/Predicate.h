@@ -23,7 +23,14 @@ public:
     void getBeta(expr_vector& beta);
     void getGamma(expr_vector& gamma);
     void getX(expr_vector& x);
+    expr_vector& getPars() {return m_pars;}
 
+    expr getPhip() {return m_deltap;}
+
+    expr getUnfold1();
+    expr getUnfold2(expr_vector& new_vars);
+
+    int getEinGamma();
     bool getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items);
     expr getTr();
 
@@ -32,7 +39,9 @@ public:
 private:
     expr getDeltaP();
     expr getUnfoldDeltap2(expr_vector& svars);
+    expr getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items);
 
+    void initSucc();
     int getCard(expr& var, expr_vector& svars);
     void setMatrix(int (&matrix)[4][4], int i, int j, int val);
     bool floyd(int (&matrix)[4][4]);
@@ -48,6 +57,11 @@ private:
     expr m_pto;
     expr m_rec_app;
     expr m_deltap;
+
+    expr m_succ;
+    expr_vector m_succ_pars;
+
+    expr m_tr;
 };
 
 #endif

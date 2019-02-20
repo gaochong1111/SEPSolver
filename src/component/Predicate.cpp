@@ -8,7 +8,9 @@ extern Z3Buffer z3_buffer;
 
 Predicate::Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec)
         :m_pars(pars), m_base_rule(base), m_rec_rule(rec), 
-        m_data(z3_ctx), m_pto(z3_ctx), m_rec_app(z3_ctx), m_deltap(z3_ctx){
+        m_data(z3_ctx), m_pto(z3_ctx), m_rec_app(z3_ctx), 
+        m_deltap(z3_ctx), m_succ(z3_ctx), m_succ_pars(z3_ctx),
+        m_tr(z3_ctx) {
     expr_vector x(z3_ctx);
     getX(x);
     expr body = m_rec_rule.body().substitute(x);
@@ -25,6 +27,10 @@ Predicate::Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec)
     m_rec_app = sep_app.arg(1);
 
     m_deltap = getDeltaP();
+
+    initSucc();
+
+    m_tr = getTr();
 }
 
 void Predicate::getABC(expr_vector& alpha, expr_vector& beta, expr_vector& gamma) {
@@ -75,6 +81,72 @@ expr Predicate::getDeltaP() {
         }
     }
     return m_data.substitute(src_vars, dst_vars);
+}
+
+expr Predicate::getUnfold1() {
+    if (getEinGamma() != -1) {
+        return !(z3_ctx.int_const((m_pars[0].to_string().c_str())) == 
+            z3_ctx.int_const((m_pars[m_pars.size()/2].to_string().c_str()))) && m_deltap; 
+    }
+    return m_deltap;
+}
+
+expr Predicate::getUnfold2(expr_vector& new_vars) {
+    expr_vector gamma(z3_ctx);
+    getGamma(gamma);
+    int idx = getEinGamma();
+    expr_vector items(z3_ctx);
+    if (idx != -1) {
+       string name1 = gamma[idx].to_string() + "_N" + to_string(new_vars.size());
+       new_vars.push_back(z3_ctx.int_const(name1.c_str()));
+       string name2 = gamma[idx].to_string() + "_N" + to_string(new_vars.size());
+       new_vars.push_back(z3_ctx.int_const(name2.c_str()));
+       
+       expr E = z3_ctx.int_const((m_pars[0].to_string().c_str()));
+       items.push_back(!(E == new_vars[0]));
+       items.push_back(!(E == new_vars[1]));
+    } 
+    expr_vector dt_alpha(z3_ctx);
+    expr_vector dt_beta(z3_ctx);
+    expr_vector gamma_1(z3_ctx);
+    expr_vector gamma_2(z3_ctx);
+    int num = m_pars.size();
+    for (int i=1; i<num/2; i++) {
+        if (m_pars[i].get_sort().to_string() == "SetInt") {
+            dt_alpha.push_back(m_pars[i]);
+            dt_beta.push_back(m_pars[i+num/2]);
+
+            string name1 = gamma[i-1].to_string() + "_N" + to_string(new_vars.size());
+            new_vars.push_back(z3_ctx.int_const(name1.c_str()));
+            string name2 = gamma[i-1].to_string() + "_N" + to_string(new_vars.size());
+            new_vars.push_back(z3_ctx.int_const(name2.c_str()));
+            
+            expr v1 = z3_ctx.constant(name1.c_str(), gamma[i-1].get_sort());
+            expr v2 = z3_ctx.constant(name2.c_str(), gamma[i-1].get_sort());
+            gamma_1.push_back(v1);
+            gamma_2.push_back(v2);
+        }
+    }
+    items.push_back(m_deltap.substitute(dt_beta, gamma_1));
+    items.push_back(m_deltap.substitute(dt_alpha, gamma_2));
+    items.push_back(m_deltap.substitute(dt_alpha, gamma_1).substitute(dt_beta, gamma_2));
+
+    cout << "replace: " << m_deltap.substitute(dt_alpha, gamma_1).substitute(dt_beta, gamma_2) <<endl;
+
+    // items.push_back(m_tr.substitute(dt_alpha, gamma_2));
+
+    return mk_and(items);
+}
+
+int Predicate::getEinGamma() {
+    expr_vector gamma(z3_ctx);
+    getGamma(gamma);
+    for (unsigned int i=0; i<gamma.size(); i++) {
+        if (m_pars[0].hash() == gamma[i].hash()) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items) {
@@ -204,11 +276,29 @@ expr Predicate::getTr() {
     // phi_r(2)
     expr or_item3 = getUnfoldDeltap2(svars);
 
-    cout << "unfold2: " << or_item3 << endl;
+    expr or_item4 = getUnfoldDeltap3(svars, strt_items);
 
+    return !(!or_item1 && !or_item2 && !or_item3 && !or_item4); 
+}
 
+void Predicate::initSucc() {
+    expr_vector and_items(z3_ctx);
+    expr S = z3_ctx.constant("S", z3_buffer.getSort("SetInt"));
+    expr x = z3_ctx.int_const("x");
+    expr y = z3_ctx.int_const("y");
+    m_succ_pars.push_back(S);
+    m_succ_pars.push_back(x);
+    m_succ_pars.push_back(y);
 
-    return z3_ctx.bool_val(true);
+    and_items.push_back(z3_buffer.getBelongsto(x, S));
+    and_items.push_back(z3_buffer.getBelongsto(y, S));
+    expr_vector pars(z3_ctx);
+    expr z = z3_ctx.int_const("z");
+    pars.push_back(z);
+    expr ebody = z3_buffer.getBelongsto(z, S) 
+        && !(z >= x + 1 && y >= z + 1);
+    and_items.push_back(forall(pars, ebody));
+    m_succ = mk_and(and_items);
 }
 
 void Predicate::show() {
@@ -259,13 +349,14 @@ void Predicate::show() {
     cout << "strt: " << strt_items << endl;
     
     cout << "tr closure: \n";
-    getTr();
+    expr tr = getTr();
+    cout << tr <<endl;
 }
 
 
 expr Predicate::getUnfoldDeltap2(expr_vector& svars) {
     expr_vector evars(z3_ctx);
-    expr nvar = z3_ctx.constant("ES", z3_ctx.uninterpreted_sort("SetInt"));
+    expr nvar = z3_ctx.constant("ES", z3_buffer.getSort("SetInt"));
     evars.push_back(nvar);
     expr_vector vars1(z3_ctx);
     vars1.push_back(svars[0]);
@@ -273,6 +364,66 @@ expr Predicate::getUnfoldDeltap2(expr_vector& svars) {
     vars2.push_back(svars[1]);
     return exists(evars, m_deltap.substitute(vars1, evars) 
         && m_deltap.substitute(vars2, evars));
+}
+
+expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items) {
+    expr_vector evars(z3_ctx);
+    expr nvar1 = z3_ctx.constant("ES1", z3_buffer.getSort("SetInt"));
+    expr nvar2 = z3_ctx.constant("ES2", z3_buffer.getSort("SetInt"));
+    evars.push_back(nvar1);
+    evars.push_back(nvar2);
+
+    expr_vector svars1(z3_ctx);
+    svars1.push_back(svars[0]);
+    expr_vector dvars1(z3_ctx);
+    dvars1.push_back(nvar1); 
+
+    expr_vector svars2(z3_ctx);
+    svars2.push_back(svars[1]);
+    expr_vector  dvars2(z3_ctx);
+    dvars2.push_back(nvar2);
+
+    //
+    expr phi_r = m_deltap.arg(0) && strt_items[0] && strt_items[1] 
+        && strt_items[4] && strt_items[5];
+    expr_vector and_items(z3_ctx);
+    and_items.push_back(phi_r.substitute(svars2, dvars1));
+    and_items.push_back(phi_r.substitute(svars1, dvars2));
+    expr emptyset = z3_buffer.getEmptyset();
+    expr setminus = z3_buffer.getSetminus(nvar1, nvar2);
+
+    and_items.push_back(!(nvar2 == emptyset));
+    and_items.push_back(!(setminus == emptyset));
+    and_items.push_back(z3_buffer.getSubset(nvar2, nvar1));
+    and_items.push_back(z3_buffer.getMax(setminus) <= z3_buffer.getMin(nvar2) - 1);
+
+    expr min_s2 = z3_buffer.getMin(nvar2);
+    expr set_item = z3_buffer.getSet(min_s2);
+    expr union_item = z3_buffer.getSetunion(setminus, set_item);
+    expr_vector epars(z3_ctx);
+    expr x = z3_ctx.int_const("x");
+    expr y = z3_ctx.int_const("y");
+    epars.push_back(x);
+    epars.push_back(y);
+
+    expr_vector dvars(z3_ctx);
+    dvars.push_back(union_item);
+    dvars.push_back(x);
+    dvars.push_back(y);
+
+    expr succ_item = m_succ.substitute(m_succ_pars, dvars);
+
+    expr_vector spars(z3_ctx);
+    expr S1 = svars[0];
+    expr S2 = svars[1];
+    spars.push_back(z3_buffer.getMin(S1));
+    spars.push_back(z3_buffer.getMin(S2));
+
+    // imply
+    expr ebody = !(succ_item && !strt_items[0].substitute(spars, epars));
+    and_items.push_back(forall(epars, ebody));
+
+    return !forall(evars, !mk_and(and_items));
 }
 
 int Predicate::getCard(expr& item, expr_vector& svars) {
