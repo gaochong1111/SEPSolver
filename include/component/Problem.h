@@ -26,12 +26,12 @@ public:
 
     void setHeap(SortType* src, SortType* dst) {m_heap.first = src; m_heap.second = dst;}
 
-    expr getAbsPhi();
+    expr getAbsPhi(expr_vector& free_items);
 
     void show();
 
 protected:
-    expr getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars);
+    expr getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars, expr_vector& free_items);
     expr getSpatialStar(expr_vector& new_bools);
 
 private:
@@ -41,6 +41,7 @@ protected:
     Predicate* m_pred;
     z3::expr m_phi;
     z3::expr m_psi;
+
     HeapType m_heap;
 };
 

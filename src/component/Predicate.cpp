@@ -84,6 +84,7 @@ expr Predicate::getDeltaP() {
 }
 
 expr Predicate::getUnfold1() {
+    if (m_tr.hash() == z3_ctx.bool_val(false).hash()) return z3_ctx.bool_val(false);
     if (getEinGamma() != -1) {
         return !(z3_ctx.int_const((m_pars[0].to_string().c_str())) == 
             z3_ctx.int_const((m_pars[m_pars.size()/2].to_string().c_str()))) && m_deltap; 
@@ -92,14 +93,15 @@ expr Predicate::getUnfold1() {
 }
 
 expr Predicate::getUnfold2(expr_vector& new_vars) {
+    if (m_tr.hash() == z3_ctx.bool_val(false).hash()) return z3_ctx.bool_val(false);
     expr_vector gamma(z3_ctx);
     getGamma(gamma);
     int idx = getEinGamma();
     expr_vector items(z3_ctx);
     if (idx != -1) {
-       string name1 = gamma[idx].to_string() + "_N" + to_string(new_vars.size());
+       string name1 = newName(gamma[idx].to_string(), new_vars.size());
        new_vars.push_back(z3_ctx.int_const(name1.c_str()));
-       string name2 = gamma[idx].to_string() + "_N" + to_string(new_vars.size());
+       string name2 = newName(gamma[idx].to_string(), new_vars.size());
        new_vars.push_back(z3_ctx.int_const(name2.c_str()));
        
        expr E = z3_ctx.int_const((m_pars[0].to_string().c_str()));
@@ -116,10 +118,10 @@ expr Predicate::getUnfold2(expr_vector& new_vars) {
             dt_alpha.push_back(m_pars[i]);
             dt_beta.push_back(m_pars[i+num/2]);
 
-            string name1 = gamma[i-1].to_string() + "_N" + to_string(new_vars.size());
-            new_vars.push_back(z3_ctx.int_const(name1.c_str()));
-            string name2 = gamma[i-1].to_string() + "_N" + to_string(new_vars.size());
-            new_vars.push_back(z3_ctx.int_const(name2.c_str()));
+            string name1 = newName(gamma[i-1].to_string(), new_vars.size());
+            new_vars.push_back(z3_ctx.constant(name1.c_str(), m_pars[i].get_sort()));
+            string name2 = newName(gamma[i-1].to_string(), new_vars.size());
+            new_vars.push_back(z3_ctx.constant(name2.c_str(), m_pars[i].get_sort()));
             
             expr v1 = z3_ctx.constant(name1.c_str(), gamma[i-1].get_sort());
             expr v2 = z3_ctx.constant(name2.c_str(), gamma[i-1].get_sort());
@@ -271,14 +273,16 @@ expr Predicate::getTr() {
 
     bool is_sat = getStrt(case_i, svars, strt_items);
 
-    expr or_item1 = svars[0] == svars[1];
-    expr or_item2 = m_deltap;
-    // phi_r(2)
-    expr or_item3 = getUnfoldDeltap2(svars);
-
-    expr or_item4 = getUnfoldDeltap3(svars, strt_items);
-
-    return !(!or_item1 && !or_item2 && !or_item3 && !or_item4); 
+    if (is_sat) {
+        expr or_item1 = svars[0] == svars[1];
+        expr or_item2 = m_deltap;
+        // phi_r(2)
+        expr or_item3 = getUnfoldDeltap2(svars);
+        expr or_item4 = getUnfoldDeltap3(svars, strt_items);
+        return !(!or_item1 && !or_item2 && !or_item3 && !or_item4); 
+    } else {
+        return z3_ctx.bool_val(false);
+    }
 }
 
 void Predicate::initSucc() {
@@ -370,6 +374,7 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items) {
     expr_vector evars(z3_ctx);
     expr nvar1 = z3_ctx.constant("ES1", z3_buffer.getSort("SetInt"));
     expr nvar2 = z3_ctx.constant("ES2", z3_buffer.getSort("SetInt"));
+    expr nvar3 = z3_ctx.constant("ES3", z3_buffer.getSort("SetInt"));
     evars.push_back(nvar1);
     evars.push_back(nvar2);
 
@@ -392,14 +397,16 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items) {
     expr emptyset = z3_buffer.getEmptyset();
     expr setminus = z3_buffer.getSetminus(nvar1, nvar2);
 
+    and_items.push_back(nvar3 == setminus);
+
     and_items.push_back(!(nvar2 == emptyset));
-    and_items.push_back(!(setminus == emptyset));
+    and_items.push_back(!(nvar3 == emptyset));
     and_items.push_back(z3_buffer.getSubset(nvar2, nvar1));
-    and_items.push_back(z3_buffer.getMax(setminus) <= z3_buffer.getMin(nvar2) - 1);
+    and_items.push_back(z3_buffer.getMax(nvar3) <= z3_buffer.getMin(nvar2) - 1);
 
     expr min_s2 = z3_buffer.getMin(nvar2);
     expr set_item = z3_buffer.getSet(min_s2);
-    expr union_item = z3_buffer.getSetunion(setminus, set_item);
+    expr union_item = z3_buffer.getSetunion(nvar3, set_item);
     expr_vector epars(z3_ctx);
     expr x = z3_ctx.int_const("x");
     expr y = z3_ctx.int_const("y");
@@ -529,4 +536,9 @@ expr Predicate::getIExpr(int i, expr_vector& svars) {
     }
     func_decl f = z3_buffer.getFuncDecl(key);
     return f(svars[i&1]);
+}
+
+
+string Predicate::newName(string name, int i) {
+    return name.replace(name.find("?"), 1, "") + "_N" + to_string(i);
 }

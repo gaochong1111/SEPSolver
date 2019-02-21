@@ -11,6 +11,7 @@
 *******************************************/
 
 #include "z3++.h"
+#include "Types.h"
 
 using namespace z3;
 
@@ -47,6 +48,8 @@ private:
     bool floyd(int (&matrix)[4][4]);
     expr getIJExpr(int (&matrix)[4][4], int i, int j, expr_vector& svars);
     expr getIExpr(int i, expr_vector& svars);
+
+    string newName(string name, int i);
 
 protected:
     expr_vector m_pars;

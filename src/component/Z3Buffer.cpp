@@ -158,6 +158,36 @@ expr Z3Buffer::getMin(expr& S) {
     return min_f(args);
 }
 
+void Z3Buffer::getIntItems(expr e, Z3ExprSet& items) {
+    if (e.is_app()) {
+        string name = e.decl().name().str();
+        if (name == "min" || name == "max") {
+            items.insert(e);
+        } else {
+            for (unsigned i=0; i<e.num_args(); i++) {
+                getIntItems(e.arg(i), items);
+            }
+        }
+    } else if (e.is_const()) {
+        if (e.get_sort().to_string() == "Int") {
+            items.insert(e);
+        }
+    }
+}
+
+void Z3Buffer::getQuantifierBounds(z3::expr exp, z3::expr_vector &bounds, z3::expr &body) {
+    if (exp.is_quantifier()) {
+        int bnum = Z3_get_quantifier_num_bound(Z3_context(z3_ctx), Z3_ast(exp));
+        for (int i=bnum-1; i>=0; i--) {
+            Z3_symbol sym = Z3_get_quantifier_bound_name(Z3_context(z3_ctx), Z3_ast(exp), i);
+            Z3_sort sym_s = Z3_get_quantifier_bound_sort(Z3_context(z3_ctx), Z3_ast(exp), i);
+            Z3_ast x = Z3_mk_const(Z3_context(z3_ctx), sym, sym_s);
+            bounds.push_back(to_expr(z3_ctx, x));
+        }
+        body = exp.body().substitute(bounds);
+    }
+}
+
 void Z3Buffer::show() {
     cout << "var table: \n";
     for (auto kv : z3_var_table) {

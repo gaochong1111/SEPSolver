@@ -17,13 +17,23 @@ extern Z3Buffer z3_buffer;
 
 Problem::Problem():m_pred(nullptr), m_phi(z3_ctx), m_psi(z3_ctx) {}
 
-expr Problem::getAbsPhi() {
+expr Problem::getAbsPhi(expr_vector& free_items) {
 
     cout << "computing abs phi: \n";
+    expr_vector new_vars(z3_ctx); // new vars
     expr_vector data_items(z3_ctx);
     int num = m_phi.num_args();
     for (int i=0; i<num-1; i++) {
         string sort_name = m_phi.arg(i).arg(0).get_sort().to_string();
+        if (sort_name == "Int") {
+            // check free items
+            Z3ExprSet items;
+            z3_buffer.getIntItems(m_phi.arg(i), items);
+            if (items.size() > 2) {
+                free_items.push_back(m_phi.arg(i));
+            }
+        }
+        // abstraction of data items
         if (sort_name == "SetInt" || sort_name == "Int") {
             data_items.push_back(m_phi.arg(i));
         } else {
@@ -44,10 +54,9 @@ expr Problem::getAbsPhi() {
     num = spatial.num_args();
     expr_vector spatial_abs_items(z3_ctx);
     expr_vector new_bools(z3_ctx);
-    expr_vector new_vars(z3_ctx);
     for (int i=0; i<num; i++) {
         expr atom = spatial.arg(i);
-        spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, new_vars));
+        spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, new_vars, free_items));
     }
 
     cout << "new_vars: " << new_vars <<endl;
@@ -59,9 +68,17 @@ expr Problem::getAbsPhi() {
     expr abs = data_abs && spatial_abs && spatial_star;
 
     // cout << "spatial_abs: " << spatial_abs <<endl;
-    cout << "spatial_star: " << spatial_star <<endl;
+    // cout << "spatial_star: " << spatial_star <<endl;
 
-    return z3_ctx.bool_val(true);
+    // add var env
+    for (unsigned int i=0; i<new_vars.size(); i++) {
+        z3_buffer.addVarEnv(new_vars[i]);
+    }
+    for (unsigned int i=0; i<new_bools.size(); i++) {
+        z3_buffer.addVarEnv(new_bools[i]);
+    }
+
+    return abs;
 }
 
 void Problem::show() {
@@ -72,13 +89,12 @@ void Problem::show() {
     // m_pred->show();
 
     cout << "phi: " << m_phi << endl;
-
-    getAbsPhi();
+    // getAbsPhi();
 
     cout << "psi: " << m_psi << endl;
 }
 
-expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars) {
+expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars, expr_vector& free_items) {
     ostringstream oss;
     string new_name;
     oss << atom.arg(0) << "_BOOL_" << i; 

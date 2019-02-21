@@ -20,6 +20,18 @@
 using namespace z3;
 using std::map;
 
+/**
+ * the expr comparator
+ */
+class exprcomp {
+public:
+        bool operator() (const z3::expr& lhs, const z3::expr& rhs) const {
+                return lhs.hash() < rhs.hash();
+        }
+};
+
+using Z3ExprSet = set<expr, exprcomp>;
+
 class Z3Buffer {
 public:
     Z3Buffer() {}
@@ -30,6 +42,8 @@ public:
 
     void setVarEnv(Parser& parser);
     vector<expr>& getVarEnv() {return m_var_env;}
+
+    void addVarEnv(expr var) {m_var_env.push_back(var);}
 
     expr& getVar(Var* pvar);
 
@@ -46,6 +60,10 @@ public:
     expr getBelongsto(expr& i, expr& S);
     expr getMax(expr& S);
     expr getMin(expr& S);
+
+    void getQuantifierBounds(expr e, expr_vector& bounds, expr& body);
+
+    void getIntItems(expr e, Z3ExprSet& items);
 
     void show();
 
