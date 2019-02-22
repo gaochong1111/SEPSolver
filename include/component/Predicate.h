@@ -25,6 +25,7 @@ public:
     void getGamma(expr_vector& gamma);
     void getX(expr_vector& x);
     expr_vector& getPars() {return m_pars;}
+    expr getFreeItem() {return m_free_item;}
 
     expr getPhip() {return m_deltap;}
 
@@ -39,8 +40,11 @@ public:
 
 private:
     expr getDeltaP();
+
+    expr getTrPossiblelyEmpty(expr_vector& svars, expr_vector& strt_items, int case_i);
+    expr getTrSurelyNonempty(expr_vector& svars, expr_vector& strt_items, int case_i);
     expr getUnfoldDeltap2(expr_vector& svars);
-    expr getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items);
+    expr getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, int case_i);
 
     void initSucc();
     int getCard(expr& var, expr_vector& svars);
@@ -65,6 +69,7 @@ private:
     expr_vector m_succ_pars;
 
     expr m_tr;
+    expr m_free_item;
 };
 
 #endif

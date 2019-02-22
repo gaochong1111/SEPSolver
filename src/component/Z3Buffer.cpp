@@ -9,6 +9,7 @@
 *******************************************/
 
 #include "component/Z3Buffer.h"
+#include <algorithm>
 
 extern z3::context z3_ctx;
 
@@ -211,3 +212,68 @@ void Z3Buffer::show() {
     }
     cout << endl;
 }
+
+
+/**
+ * tm1 : T1 op T2 + c1
+ * tm2 : T1 op T2 + c2
+ * quantelmt
+ */
+expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
+    // std::cout << "tm1: " << tm1 <<std::endl;
+    // std::cout << "tm2: " << tm2 << std::endl;
+    z3::expr_vector and_items(z3_ctx);
+    for (unsigned int i=0; i<f1.num_args(); i++) {
+        for (unsigned int j=0; j<f2.num_args(); j++) {
+            expr tm1 = f1.arg(i);
+            expr tm2 = f2.arg(j);
+            z3::expr tm1_1 = tm1.arg(0);
+            z3::expr tm1_2 = tm1.arg(1).arg(0);
+            int c1 = tm1.arg(1).arg(1).get_numeral_int();
+            std::string op1 = tm1.decl().name().str();
+            z3::expr tm2_1 = tm2.arg(0);
+            z3::expr tm2_2 = tm2.arg(1).arg(0);
+            int c2 = tm2.arg(1).arg(1).get_numeral_int();
+            std::string op2 = tm2.decl().name().str();
+
+            int c = std::__gcd(c1, c2);
+            c =  c1 * c2 / c; //
+            c1 = c / c1;
+            c2 = c / c2;
+            if (c != 0) {
+                int case_i = 0;
+                if (op1 == "<=") case_i = 0;
+                else if (op1 == "=") case_i = 1;
+                else if (op1 == ">=") case_i = 2;
+
+                if (op2 == "=") case_i += 3;
+                else if(op2 == ">=") case_i += 6;
+
+                switch(case_i) {
+                case 0: // <= , <=
+                case 8: // >=, >=
+                    break;
+                case 7: // =, >=
+                case 6: // <=, >=
+                case 3: // <=, =
+                    and_items.push_back(c1 * (tm1_1 - tm1_2) <= c2 * (tm2_1 - tm2_2));
+                    break;
+                case 5: // >=, =
+                case 2: // >=, <=
+                case 1: // =, <=
+                    and_items.push_back(c2 * (tm2_1 - tm2_2) <= c1 * (tm1_1 - tm1_2));
+                    break;
+                case 4:
+                    and_items.push_back(c1 * (tm1_1 - tm1_2) == c2 * (tm2_1 - tm2_2));
+                    break;
+                default:
+                    std::cout << "quant_elmt :: NOT SUPPOERED!\n";
+                    exit(-1);
+                }
+            }
+        }
+    }
+    return mk_and(and_items);
+}
+
+

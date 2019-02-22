@@ -146,12 +146,17 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
         // unfold2
         expr unfold2 = bool_prefix && m_pred->getUnfold2(new_vars).substitute(src_pars, dst_pars);
 
-        cout << "unfold0: " << unfold0 <<endl;
-        cout << "unfold1: " << unfold1 <<endl;
+        expr free_item = m_pred->getFreeItem();
+        if (Z3_ast(free_item) != 0) {
+            free_item.substitute(src_pars, dst_pars);
+            for (unsigned int j=0; j<free_item.num_args(); j++) {
+                free_items.push_back(free_item.arg(j));
+            }
+        }
 
+        // cout << "unfold0: " << unfold0 <<endl;
+        // cout << "unfold1: " << unfold1 <<endl;
         // cout << "unfold2: " << unfold2 <<endl;
-
-
         return !(!unfold0 && !unfold1 && !unfold2);
     }
 }

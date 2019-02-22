@@ -65,6 +65,8 @@ public:
 
     void getIntItems(expr e, Z3ExprSet& items);
 
+    expr getQuantElmt(z3::expr tm1, z3::expr tm2);
+
     void show();
 
 protected:
