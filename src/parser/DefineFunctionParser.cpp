@@ -64,8 +64,6 @@ void DefineFunctionParser::parse(Parser& parser) {
     z3::expr rec = parser.topArg();
     parser.popArg();
 
-    // parser.showEnv();
-
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
     // action
     parser.popVar();
@@ -80,5 +78,6 @@ void DefineFunctionParser::parse(Parser& parser) {
     // TODO generate predicate definition
 
     Predicate*  pred = new Predicate(pars, base, rec);
+
     parser.addPredicate(pred);
 }

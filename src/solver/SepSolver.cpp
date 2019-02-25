@@ -21,7 +21,7 @@ void SepSolver::solve() {
     cout << "solving ...\n"; 
     expr_vector free_items(z3_ctx);
     expr abs = m_problem->getAbsPhi(free_items);
-    
+
     if (free_items.size() == 0) {
         // simple case
         MonaTranslator mona_tl(abs);
@@ -39,5 +39,7 @@ void SepSolver::solve() {
             }
         }
 
+    } else {
+        cout << "complex case;\n";
     }
 }

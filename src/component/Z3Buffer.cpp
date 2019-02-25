@@ -220,8 +220,8 @@ void Z3Buffer::show() {
  * quantelmt
  */
 expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
-    // std::cout << "tm1: " << tm1 <<std::endl;
-    // std::cout << "tm2: " << tm2 << std::endl;
+    cout << "f1: " << f1 <<endl;
+    cout << "f2: " << f2 <<endl;
     z3::expr_vector and_items(z3_ctx);
     for (unsigned int i=0; i<f1.num_args(); i++) {
         for (unsigned int j=0; j<f2.num_args(); j++) {
@@ -236,6 +236,8 @@ expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
             int c2 = tm2.arg(1).arg(1).get_numeral_int();
             std::string op2 = tm2.decl().name().str();
 
+            if ((c1 & c2) == 0) continue;
+
             int c = std::__gcd(c1, c2);
             c =  c1 * c2 / c; //
             c1 = c / c1;
@@ -248,6 +250,7 @@ expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
 
                 if (op2 == "=") case_i += 3;
                 else if(op2 == ">=") case_i += 6;
+                cout << "case_i " << case_i <<endl;
 
                 switch(case_i) {
                 case 0: // <= , <=
@@ -273,7 +276,10 @@ expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
             }
         }
     }
-    return mk_and(and_items);
+    if (and_items.size() > 0) {
+        return mk_and(and_items);
+    }
+    return z3_ctx.bool_val(true);
 }
 
 
