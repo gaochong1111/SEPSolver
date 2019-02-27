@@ -15,11 +15,14 @@
 class SepSolver {
 public:
     SepSolver() {}
-    virtual ~SepSolver() {}
-    void setProblem(Problem* problem) {m_problem = problem;}
+    virtual ~SepSolver(); 
+    void setProblem(Problem* problem); 
 
     void solve();
 
+    string checkSat();
+    string checkEntl();
+    string check(expr& phi, expr_vector& free_items);
 
 protected:
     Problem* m_problem;

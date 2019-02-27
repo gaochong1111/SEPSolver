@@ -174,14 +174,13 @@ void CommandParser::_parseExpr(Parser& parser) {
             case SYMBOL_TOKEN:
             {
                 string id = dynamic_cast<StrToken*>(curr)->value();
-                Var* pv = parser.getVar(id);
-                //if (pv != nullptr) {
-                //    cout << "found var: "; pv->show(); cout <<endl;
-                //} else {
-                //    cout << "not found var: " << id << endl;
-                //}
-                expr ve = z3_buffer.getVar(pv);
-                parser.pushArg(ve);
+                if (id == "true") parser.pushArg(z3_ctx.bool_val(true));
+                else if (id == "false") parser.pushArg(z3_ctx.bool_val(false));
+                else {
+                    Var* pv = parser.getVar(id);
+                    expr ve = z3_buffer.getVar(pv);
+                    parser.pushArg(ve);
+                }
                 break;
             }
             default:

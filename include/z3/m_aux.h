@@ -576,7 +576,7 @@ void display_function_interpretations(Z3_context c, FILE * out, Z3_model m)
 /**
    \brief Custom model pretty printer.
 */
-void display_model(Z3_context c, FILE * out, Z3_model m)
+void displayModel(Z3_context c, FILE * out, Z3_model m)
 {
     unsigned num_constants;
     unsigned i;
@@ -617,7 +617,7 @@ void display_decl(Z3_context c, FILE* out, Z3_func_decl f_decl) {
 
 
 /**
-   \brief Similar to #check, but uses #display_model instead of #Z3_model_to_string.
+   \brief Similar to #check, but uses #displayModel instead of #Z3_model_to_string.
 */
 void check2(Z3_context ctx, Z3_solver s, Z3_lbool expected_result)
 {
@@ -632,13 +632,13 @@ void check2(Z3_context ctx, Z3_solver s, Z3_lbool expected_result)
         printf("potential model:\n");
         m = Z3_solver_get_model(ctx, s);
 	if (m) Z3_model_inc_ref(ctx, m);
-        display_model(ctx, stdout, m);
+        displayModel(ctx, stdout, m);
         break;
     case Z3_L_TRUE:
         printf("sat\n");
         m = Z3_solver_get_model(ctx, s);
 	if (m) Z3_model_inc_ref(ctx, m);
-        display_model(ctx, stdout, m);
+        displayModel(ctx, stdout, m);
         break;
     }
     if (result != expected_result) {

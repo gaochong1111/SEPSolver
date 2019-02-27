@@ -10,6 +10,7 @@ Predicate::Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec)
         :m_pars(pars), m_base_rule(base), m_rec_rule(rec), 
         m_data(z3_ctx), m_pto(z3_ctx), m_rec_app(z3_ctx), 
         m_deltap(z3_ctx), m_succ(z3_ctx), m_succ_pars(z3_ctx),
+        m_case_i(-1), m_svars(z3_ctx), m_strt_items(z3_ctx), m_strt_pars(z3_ctx),
         m_tr(z3_ctx), m_free_item(z3_ctx) {
     expr_vector x(z3_ctx);
     getX(x);
@@ -64,7 +65,7 @@ void Predicate::getX(expr_vector& x) {
         Z3_symbol name = Z3_get_quantifier_bound_name(ctx, rec, i);
         Z3_sort sort = Z3_get_quantifier_bound_sort(ctx, rec, i);
         Z3_ast t = Z3_mk_const(ctx, name, sort);
-        x.push_back(to_expr(z3_ctx, t));
+        x.push_back(toExpr(z3_ctx, t));
     }
 }
 
@@ -151,13 +152,13 @@ int Predicate::getEinGamma() {
     return -1;
 }
 
-bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items) {
+bool Predicate::getStrt() {
     expr deltap = getDeltaP();
     expr phi_r1 = deltap.arg(0);
-    svars.push_back(phi_r1.arg(0));
+    m_svars.push_back(phi_r1.arg(0));
 
-    // case_i [00 00 0 b] [strict (max min), min or max, empty]
-    case_i = 0; // (setunion S2 (min S1))
+    // m_case_i [00 00 0 b] [strict (max min), min or max, empty]
+    m_case_i = 0; // (setunion S2 (min S1))
 
     int matrix[4][4]; // 0: min(S1) 1:min(S2) 2:max(S1) 3:max(S2)
     for (int i=0; i<4; i++) {
@@ -169,22 +170,22 @@ bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items
 
     if (phi_r1.arg(1).is_const()) {
         // (= S1 S2)
-        svars.push_back(phi_r1.arg(1));
+        m_svars.push_back(phi_r1.arg(1));
         // min(S1) = min(S2) max(S1)=max(S2)
         matrix[0][1] = 0;
         matrix[1][0] = 0;
         matrix[2][3] = 0;
         matrix[3][2] = 0;
-        case_i = -1;
+        m_case_i = -1;
     } else {
         expr setu = phi_r1.arg(1);
-        svars.push_back(setu.arg(0));
+        m_svars.push_back(setu.arg(0));
         if (setu.arg(1).decl().name().str() == "setunion") {
             // (setunion S1 (setunion (min S1) (max S1)))
-            case_i = 5; // [xx 10 1]
+            m_case_i = 5; // [xx 10 1]
         } else if (setu.arg(1).arg(0).decl().name().str() == "max") {
             // (setunion S1 (max S1))
-            case_i = 2; // [xx 01 x]
+            m_case_i = 2; // [xx 01 x]
         }
     }
 
@@ -206,8 +207,8 @@ bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items
                     item2 = item2.arg(0);
                 }
             }
-            int row = getCard(item1, svars);
-            int col = getCard(item2, svars);
+            int row = getCard(item1, m_svars);
+            int col = getCard(item2, m_svars);
 
             if (((row&1)&(col&1)) == 0) has_s1 = true;
             if (((row&1)|(col&1)) == 1) has_s2 = true;
@@ -229,17 +230,17 @@ bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items
     if (has_s2) {
         // min(S2) <= max(S2)
         setMatrix(matrix, 1, 3, 0);
-        if (case_i != -1) {
+        if (m_case_i != -1) {
             // s2 noempty
-            case_i |= 1; // [xx xx 1]
+            m_case_i |= 1; // [xx xx 1]
 
             setMatrix(matrix, 0, 1, 0); // min(S1) <= min(S2)
             setMatrix(matrix, 3, 2, 0); // max(S2) <= max(S1)
 
-            if ((case_i & 6) == 0) {
+            if ((m_case_i & 6) == 0) {
                 // [xx 00 x]
                 setMatrix(matrix, 2, 3, 0); // max(S1) <= max(S2)
-            } else if ((case_i & 6) == 1) {
+            } else if ((m_case_i & 6) == 1) {
                 // [xx 01 x]
                 setMatrix(matrix, 1, 0, 0); // min(S2) <= min(S1)
             }
@@ -250,18 +251,18 @@ bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items
 
     if (is_sat) {
         if (matrix[0][1] < 0) {
-            case_i |= 16; // min(S1) <= min(S2) - c (c > 0)
+            m_case_i |= 16; // min(S1) <= min(S2) - c (c > 0)
         }
         if (matrix[3][2] < 0) {
-            case_i |= 8; // max(S2) <= max(S1) - c (c > 0)
+            m_case_i |= 8; // max(S2) <= max(S1) - c (c > 0)
         }
 
         // strict result
         for (int i=0; i<3; i++) {
             for (int j=i+1; j<4; j++) {
 
-                strt_items.push_back(getIJExpr(matrix, i, j, svars));
-                // cout << i << "," << j << " --> " << matrix[i][j] << " -- " << strt_items.back() << endl;
+                m_strt_items.push_back(getIJExpr(matrix, i, j, m_svars));
+                // cout << i << "," << j << " --> " << matrix[i][j] << " -- " << m_strt_items.back() << endl;
             }
         }
     }
@@ -270,23 +271,66 @@ bool Predicate::getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items
 
 
 expr Predicate::getTr() {
-    int case_i = 0;
-    expr_vector svars(z3_ctx);
-    expr_vector strt_items(z3_ctx);
-
-    bool is_sat = getStrt(case_i, svars, strt_items);
+    bool is_sat = getStrt();
 
     if (is_sat) {
+        initStrtPars();
         expr_vector and_items(z3_ctx);
-        and_items.push_back(!(svars[0] == svars[1]));
-        if ((case_i & 1) == 0) {
-            and_items.push_back(!getTrPossiblelyEmpty(svars, strt_items, case_i));
+        and_items.push_back(!(m_svars[0] == m_svars[1]));
+        if ((m_case_i & 1) == 0) {
+            and_items.push_back(!getTrPossiblelyEmpty());
         } else {
-            and_items.push_back(!getTrSurelyNonempty(svars, strt_items, case_i));
+            and_items.push_back(!getTrSurelyNonempty());
         }
         return !mk_and(and_items);
     } else {
         return z3_ctx.bool_val(false);
+    }
+}
+
+void Predicate::initStrtPars() {
+    expr S1 = m_svars[0];
+    expr S2 = m_svars[1];
+    if ((m_case_i & 6) == 0) {
+        // min
+        m_strt_pars.push_back(z3_buffer.getMin(S1));
+        m_strt_pars.push_back(z3_buffer.getMin(S2));
+    } else if((m_case_i&6) == 2) {
+        // max
+        m_strt_pars.push_back(z3_buffer.getMax(S1));
+        m_strt_pars.push_back(z3_buffer.getMax(S2));
+    }
+
+
+}
+
+expr Predicate::subPhiR2(expr e1, expr e2) {
+    expr_vector dst(z3_ctx);
+    if (e1.is_const()) {
+        dst.push_back(getDataItem(e1)); 
+    } else {
+        dst.push_back(e1);
+    }
+
+    if (e2.is_const()) {
+        dst.push_back(getDataItem(e2));
+    } else {
+        dst.push_back(e2);
+    }
+
+    if ((m_case_i&6) == 0) {
+        return m_strt_items[0].substitute(m_strt_pars, dst);
+    } else if ((m_case_i&6) == 2) {
+        return m_strt_items[5].substitute(m_strt_pars, dst);
+    }
+    return z3_ctx.bool_val(true);
+}
+
+expr Predicate::getDataItem(expr e) {
+    if ((m_case_i & 6) == 0) {
+        return z3_buffer.getMin(e);
+    } else {
+        return z3_buffer.getMax(e);
     }
 }
 
@@ -349,45 +393,45 @@ void Predicate::show() {
 
     cout << "deltaP: " << m_deltap <<endl;
 
-    expr_vector svars(z3_ctx);
-    expr_vector strt_items(z3_ctx);
-    int case_i = 0;
-    bool is_sat = getStrt(case_i, svars, strt_items);
+    expr_vector m_svars(z3_ctx);
+    expr_vector m_strt_items(z3_ctx);
+    int m_case_i = 0;
+    bool is_sat = getStrt();
     cout << "is_sat: " << is_sat << endl;
-    cout << "case_i: " << case_i << endl;
-    cout << "strt: " << strt_items << endl;
+    cout << "m_case_i: " << m_case_i << endl;
+    cout << "strt: " << m_strt_items << endl;
     
     cout << "tr closure: \n";
     expr tr = getTr();
     // cout << tr <<endl;
 }
 
-expr Predicate::getTrPossiblelyEmpty(expr_vector& svars, expr_vector& strt_items, int case_i) {
+expr Predicate::getTrPossiblelyEmpty() {
     expr_vector evars(z3_ctx);
     expr ES = z3_ctx.constant("ES", z3_buffer.getSort("SetInt"));
     expr ES1 = z3_ctx.constant("ES1", z3_buffer.getSort("SetInt"));
     evars.push_back(ES);
     evars.push_back(ES1);
 
-    expr S = svars[0];
+    expr S = m_svars[0];
 
     expr_vector and_items(z3_ctx);
 
     expr emptyset = z3_buffer.getEmptyset();
 
     and_items.push_back(!(ES == emptyset));
-    and_items.push_back(strt_items[1]); // min(S) max(S)
+    and_items.push_back(m_strt_items[1]); // min(S) max(S)
     expr_vector src_pars(z3_ctx);
     src_pars.push_back(S);
     expr_vector dst_pars(z3_ctx);
     dst_pars.push_back(ES);
-    expr phip = m_deltap.arg(0) && strt_items[1];
+    expr phip = m_deltap.arg(0) && m_strt_items[1];
     and_items.push_back(phip.substitute(src_pars, dst_pars));
 
     and_items.push_back(z3_buffer.getSubset(ES, S));
 
 
-    if ((case_i & 6) == 4) {
+    if ((m_case_i & 6) == 4) {
         expr ES2 = z3_ctx.constant("ES2", z3_buffer.getSort("SetInt"));
         evars.push_back(ES2);
         expr setu = z3_buffer.getSetunion(ES1, ES);
@@ -397,10 +441,10 @@ expr Predicate::getTrPossiblelyEmpty(expr_vector& svars, expr_vector& strt_items
     } else {
         expr setminus = z3_buffer.getSetminus(S, ES);
         and_items.push_back(ES1 == setminus);
-        if ((case_i & 6) == 0) {
+        if ((m_case_i & 6) == 0) {
             // min
             and_items.push_back(!(!(ES1==emptyset) && z3_buffer.getMax(ES1) >= z3_buffer.getMin(ES)));
-        } else if ((case_i & 6) == 2) {
+        } else if ((m_case_i & 6) == 2) {
             // max
             and_items.push_back(!(!(ES1==emptyset) && z3_buffer.getMin(ES1) <= z3_buffer.getMax(ES)));
         }
@@ -408,28 +452,28 @@ expr Predicate::getTrPossiblelyEmpty(expr_vector& svars, expr_vector& strt_items
     return !forall(evars, !mk_and(and_items));
 }
 
-expr Predicate::getTrSurelyNonempty(expr_vector& svars, expr_vector& strt_items, int case_i) {
+expr Predicate::getTrSurelyNonempty() {
     expr_vector and_items(z3_ctx);
     and_items.push_back(!m_deltap);
-    and_items.push_back(!getUnfoldDeltap2(svars));
-    and_items.push_back(!getUnfoldDeltap3(svars, strt_items, case_i));
-    expr or_item4 = getUnfoldDeltap3(svars, strt_items, case_i);
+    and_items.push_back(!getUnfoldDeltap2());
+    and_items.push_back(!getUnfoldDeltap3());
+    expr or_item4 = getUnfoldDeltap3();
     return !(mk_and(and_items)); 
 }
 
-expr Predicate::getUnfoldDeltap2(expr_vector& svars) {
+expr Predicate::getUnfoldDeltap2() {
     expr_vector evars(z3_ctx);
     expr nvar = z3_ctx.constant("ES", z3_buffer.getSort("SetInt"));
     evars.push_back(nvar);
     expr_vector vars1(z3_ctx);
-    vars1.push_back(svars[0]);
+    vars1.push_back(m_svars[0]);
     expr_vector vars2(z3_ctx);
-    vars2.push_back(svars[1]);
+    vars2.push_back(m_svars[1]);
     return exists(evars, m_deltap.substitute(vars1, evars) 
         && m_deltap.substitute(vars2, evars));
 }
 
-expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, int case_i) {
+expr Predicate::getUnfoldDeltap3() {
     expr_vector evars(z3_ctx);
     expr ES1 = z3_ctx.constant("ES1", z3_buffer.getSort("SetInt"));
     expr ES2 = z3_ctx.constant("ES2", z3_buffer.getSort("SetInt"));
@@ -438,8 +482,8 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
     evars.push_back(ES2);
     evars.push_back(ES3);
 
-    expr S1 = svars[0];
-    expr S2 = svars[1];
+    expr S1 = m_svars[0];
+    expr S2 = m_svars[1];
 
     expr_vector svars1(z3_ctx);
     svars1.push_back(S1);
@@ -451,8 +495,8 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
     expr_vector  dvars2(z3_ctx);
     dvars2.push_back(ES2);
 
-    expr phi_r = m_deltap.arg(0) && strt_items[0] && strt_items[1] 
-        && strt_items[4] && strt_items[5];
+    expr phi_r = m_deltap.arg(0) && m_strt_items[0] && m_strt_items[1] 
+        && m_strt_items[4] && m_strt_items[5];
     
     expr_vector and_items(z3_ctx);
     and_items.push_back(phi_r.substitute(svars2, dvars1)); // (S1, ES1)
@@ -500,7 +544,7 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
     rpars.push_back(z3_buffer.getMin(S2));
 
     expr min_succ = forall(epars, !(m_succ.substitute(m_succ_pars, succ_vars) 
-        && !(strt_items[0].substitute(rpars, epars))));
+        && !(m_strt_items[0].substitute(rpars, epars))));
 
     // max
     succ_vars.resize(0);
@@ -517,10 +561,10 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
     rpars.push_back(z3_buffer.getMax(S1));
 
     expr max_succ = forall(epars, !(m_succ.substitute(m_succ_pars, succ_vars) 
-        && !(strt_items[5].substitute(rpars, epars))));
+        && !(m_strt_items[5].substitute(rpars, epars))));
 
-    if ((case_i & 6) == 4) {
-        cout << "min-max case: \n";
+    if ((m_case_i & 6) == 4) {
+        // cout << "min-max case: \n";
         // min max
         expr ES4 = z3_ctx.constant("ES4", z3_buffer.getSort("SetInt"));
         evars.push_back(ES4);
@@ -534,14 +578,14 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
         expr_vector s4par(z3_ctx);
         s4par.push_back(ES4);
 
-        if ((case_i&16) != 0) {
+        if ((m_case_i&16) != 0) {
             // min strict
             and_items.push_back(min_strict_item);
         } else {
             and_items.push_back(min_non_strict_item);
         }
 
-        if ((case_i&8) != 0) {
+        if ((m_case_i&8) != 0) {
             // max strict
             and_items.push_back(max_strict_item.substitute(s3par, s4par));
         } else {
@@ -553,8 +597,8 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
         and_items.push_back(min_succ.substitute(s3par, s4par));
 
         // quantelmt
-        m_free_item = z3_buffer.getQuantElmt(strt_items[0], strt_items[5]);
-        cout << "free: " << m_free_item <<endl;
+        m_free_item = z3_buffer.getQuantElmt(m_strt_items[0], m_strt_items[5]);
+        // cout << "free: " << m_free_item <<endl;
         and_items.push_back(m_free_item);
     } else {
         // min or max
@@ -562,9 +606,9 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
         and_items.push_back(ES3 == setminus);
         and_items.push_back(z3_buffer.getSubset(ES2, ES1));
 
-        if ((case_i&6) == 0) {
+        if ((m_case_i&6) == 0) {
             // min
-            if ((case_i&16) != 0) {
+            if ((m_case_i&16) != 0) {
                 // strict
                 and_items.push_back(min_strict_item);
             } else {
@@ -574,9 +618,9 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
 
             // succ item
             
-        } else if ((case_i&6) == 2) {
+        } else if ((m_case_i&6) == 2) {
             // max
-            if ((case_i&8) != 0) {
+            if ((m_case_i&8) != 0) {
                 // strict
                 and_items.push_back(max_strict_item);
             } else {
@@ -588,13 +632,14 @@ expr Predicate::getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, in
 
     return !forall(evars, !mk_and(and_items));
 }
-int Predicate::getCard(expr& item, expr_vector& svars) {
+
+int Predicate::getCard(expr& item, expr_vector& m_svars) {
     int index = 0;
     if (item.decl().name().str() == "max") {
         index += 2;
     }
 
-    if (item.arg(0).hash() == svars[1].hash()) {
+    if (item.arg(0).hash() == m_svars[1].hash()) {
         index += 1;
     }
     return index;
@@ -653,29 +698,29 @@ bool Predicate::floyd(int (&matrix)[4][4]) {
     return true;
 }
 
-expr Predicate::getIJExpr(int (&matrix)[4][4], int i, int j, expr_vector& svars) {
+expr Predicate::getIJExpr(int (&matrix)[4][4], int i, int j, expr_vector& m_svars) {
     // expr phi_ij = z3_ctx.bool_val(true);
     expr_vector and_items(z3_ctx);
     if (i != j) {
         if (matrix[i][j] != INT_MAX && -matrix[i][j] == matrix[j][i]) {
             if (matrix[i][j] < 0) {
-                and_items.push_back(getIExpr(j, svars) == getIExpr(i, svars) + z3_ctx.int_val(-matrix[i][j]));
+                and_items.push_back(getIExpr(j, m_svars) == getIExpr(i, m_svars) + z3_ctx.int_val(-matrix[i][j]));
             } else {
-                and_items.push_back(getIExpr(i, svars) == getIExpr(j, svars) + z3_ctx.int_val(matrix[i][j]));
+                and_items.push_back(getIExpr(i, m_svars) == getIExpr(j, m_svars) + z3_ctx.int_val(matrix[i][j]));
             }
         } else {
             if (matrix[i][j] != INT_MAX) {
                 if (matrix[i][j] < 0) {
-                    and_items.push_back(getIExpr(j, svars) >= getIExpr(i, svars) + z3_ctx.int_val(-matrix[i][j]));
+                    and_items.push_back(getIExpr(j, m_svars) >= getIExpr(i, m_svars) + z3_ctx.int_val(-matrix[i][j]));
                 } else {
-                    and_items.push_back(getIExpr(i, svars) <= getIExpr(j, svars) + z3_ctx.int_val(matrix[i][j]));
+                    and_items.push_back(getIExpr(i, m_svars) <= getIExpr(j, m_svars) + z3_ctx.int_val(matrix[i][j]));
                 }
             }
             if (matrix[j][i] != INT_MAX) {
                 if (matrix[j][i] < 0) {
-                    and_items.push_back(getIExpr(i, svars) >= getIExpr(j, svars) + z3_ctx.int_val(-matrix[j][i]));
+                    and_items.push_back(getIExpr(i, m_svars) >= getIExpr(j, m_svars) + z3_ctx.int_val(-matrix[j][i]));
                 } else {
-                    and_items.push_back(getIExpr(j, svars) <= getIExpr(i, svars) + z3_ctx.int_val(matrix[j][i]));
+                    and_items.push_back(getIExpr(j, m_svars) <= getIExpr(i, m_svars) + z3_ctx.int_val(matrix[j][i]));
                 }
             }
             
@@ -688,7 +733,7 @@ expr Predicate::getIJExpr(int (&matrix)[4][4], int i, int j, expr_vector& svars)
     }
 }
 
-expr Predicate::getIExpr(int i, expr_vector& svars) {
+expr Predicate::getIExpr(int i, expr_vector& m_svars) {
     string key = "_SetInt_Int";
     if ((i&2) == 0) {
         key = "min" + key;
@@ -696,7 +741,7 @@ expr Predicate::getIExpr(int i, expr_vector& svars) {
         key = "max" + key;
     }
     func_decl f = z3_buffer.getFuncDecl(key);
-    return f(svars[i&1]);
+    return f(m_svars[i&1]);
 }
 
 

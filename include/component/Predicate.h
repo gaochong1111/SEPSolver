@@ -32,8 +32,12 @@ public:
     expr getUnfold1();
     expr getUnfold2(expr_vector& new_vars);
 
+    expr subPhiR2(expr e1, expr e2);
+    expr getDataItem(expr e1);
+    int getCase() {return m_case_i;}
+
     int getEinGamma();
-    bool getStrt(int& case_i, expr_vector& svars, expr_vector& strt_items);
+    bool getStrt();
     expr getTr();
 
     void show();
@@ -41,12 +45,13 @@ public:
 private:
     expr getDeltaP();
 
-    expr getTrPossiblelyEmpty(expr_vector& svars, expr_vector& strt_items, int case_i);
-    expr getTrSurelyNonempty(expr_vector& svars, expr_vector& strt_items, int case_i);
-    expr getUnfoldDeltap2(expr_vector& svars);
-    expr getUnfoldDeltap3(expr_vector& svars, expr_vector& strt_items, int case_i);
+    expr getTrPossiblelyEmpty();
+    expr getTrSurelyNonempty();
+    expr getUnfoldDeltap2();
+    expr getUnfoldDeltap3();
 
     void initSucc();
+    void initStrtPars();
     int getCard(expr& var, expr_vector& svars);
     void setMatrix(int (&matrix)[4][4], int i, int j, int val);
     bool floyd(int (&matrix)[4][4]);
@@ -67,6 +72,11 @@ private:
 
     expr m_succ;
     expr_vector m_succ_pars;
+
+    int m_case_i;
+    expr_vector m_svars;
+    expr_vector m_strt_items;
+    expr_vector m_strt_pars;
 
     expr m_tr;
     expr m_free_item;

@@ -23,7 +23,8 @@ void AssertParser::parse(Parser& parser) {
     parser.popArg();
 
     if (phi.is_app() && phi.decl().name().str() == "not") {
-        parser.addPsi(phi);
+        expr psi = phi.arg(0);
+        parser.addPsi(psi);
     } else {
         parser.addPhi(phi);
     }

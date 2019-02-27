@@ -36,6 +36,8 @@ void Z3Buffer::init(Parser& parser) {
     }
 
     z3_var_table.insert(pair<string, expr>("emptyset", z3_ctx.constant("emptyset", z3_sort_table.at("SetInt"))));
+    z3_var_table.insert(pair<string, expr>("true&bool", z3_ctx.bool_val(true)));
+    z3_var_table.insert(pair<string, expr>("false&bool", z3_ctx.bool_val(false)));
 }
 
 void Z3Buffer::setVarEnv(Parser& parser) {
@@ -109,7 +111,7 @@ expr Z3Buffer::getSetunion(expr& S1, expr& S2) {
     return setunion(args);
 }
 
-expr Z3Buffer::getSet(expr& i) {
+expr Z3Buffer::getSet(expr i) {
     func_decl setd = z3_fun_table.at("set_Int_SetInt");
     expr_vector args(z3_ctx);
     args.push_back(i);
@@ -183,7 +185,7 @@ void Z3Buffer::getQuantifierBounds(z3::expr exp, z3::expr_vector &bounds, z3::ex
             Z3_symbol sym = Z3_get_quantifier_bound_name(Z3_context(z3_ctx), Z3_ast(exp), i);
             Z3_sort sym_s = Z3_get_quantifier_bound_sort(Z3_context(z3_ctx), Z3_ast(exp), i);
             Z3_ast x = Z3_mk_const(Z3_context(z3_ctx), sym, sym_s);
-            bounds.push_back(to_expr(z3_ctx, x));
+            bounds.push_back(toExpr(z3_ctx, x));
         }
         body = exp.body().substitute(bounds);
     }
@@ -220,8 +222,8 @@ void Z3Buffer::show() {
  * quantelmt
  */
 expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
-    cout << "f1: " << f1 <<endl;
-    cout << "f2: " << f2 <<endl;
+    // cout << "f1: " << f1 <<endl;
+    // cout << "f2: " << f2 <<endl;
     z3::expr_vector and_items(z3_ctx);
     for (unsigned int i=0; i<f1.num_args(); i++) {
         for (unsigned int j=0; j<f2.num_args(); j++) {
@@ -250,7 +252,6 @@ expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
 
                 if (op2 == "=") case_i += 3;
                 else if(op2 == ">=") case_i += 6;
-                cout << "case_i " << case_i <<endl;
 
                 switch(case_i) {
                 case 0: // <= , <=
@@ -282,4 +283,122 @@ expr Z3Buffer::getQuantElmt(z3::expr f1, z3::expr f2) {
     return z3_ctx.bool_val(true);
 }
 
+void Z3Buffer::getBVars(expr exp, Z3ExprSet& vars_set) {
+    if (exp.is_app()) {
+        if (exp.is_const() && !isConstant(exp)) {
+            if (exp.get_sort().to_string() == "Bool")
+                vars_set.insert(exp);
+        } else {
+             for (unsigned int i=0; i<exp.num_args(); i++) {
+                getBVars(exp.arg(i), vars_set);
+            }
+        }
+    } else if(exp.is_quantifier()) {
+        getBVars(exp.body(), vars_set);
+    }
+}
 
+void Z3Buffer::getFoVars(expr exp, Z3ExprSet& vars_set) {
+    if (exp.is_app()) {
+        if (exp.is_const() && !isConstant(exp)) {
+            if (exp.get_sort().to_string() == "Int")
+                vars_set.insert(exp);
+        } else {
+             for (unsigned int i=0; i<exp.num_args(); i++) {
+                getFoVars(exp.arg(i), vars_set);
+            }
+        }
+    } else if(exp.is_quantifier()) {
+        getFoVars(exp.body(), vars_set);
+    }
+}
+
+void Z3Buffer::getSoVars(expr exp, Z3ExprSet& vars_set) {
+    if (exp.is_app()) {
+        if (exp.is_const() && !isConstant(exp)) {
+            if (exp.get_sort().to_string() == "SetInt")
+                vars_set.insert(exp);
+        } else {
+             for (unsigned int i=0; i<exp.num_args(); i++) {
+                getSoVars(exp.arg(i), vars_set);
+            }
+        }
+    } else if(exp.is_quantifier()) {
+        getSoVars(exp.body(), vars_set);
+    }
+}
+
+void Z3Buffer::getLVars(expr exp, Z3ExprSet& vars_set) {
+    if (exp.is_app()) {
+        if (exp.is_const() && !isConstant(exp)) {
+            string s = exp.get_sort().to_string();
+            if ( s != "SetInt" && s != "Int" && s != "Bool") 
+                vars_set.insert(exp);
+        } else {
+             for (unsigned int i=0; i<exp.num_args(); i++) {
+                getLVars(exp.arg(i), vars_set);
+            }
+        }
+    } else if(exp.is_quantifier()) {
+        getLVars(exp.body(), vars_set);
+    }
+}
+
+bool Z3Buffer::isConstant(expr exp) {
+    if (exp.to_string() == "true" || exp.to_string()=="false" 
+        || exp.to_string()=="emptyset" || exp.is_numeral()) return true;
+    return false;
+}
+
+expr Z3Buffer::mkIntVar(string prefix, int p, int a, int q) {
+    prefix.append(std::to_string(p)).append("_").append(std::to_string(a)).append("_").append(std::to_string(q));
+    return z3_ctx.int_const(prefix.c_str());
+}
+
+expr Z3Buffer::mkIntVar(string prefix, int i) {
+    prefix.append(to_string(i));
+    return z3_ctx.int_const(prefix.c_str());
+}
+
+int Z3Buffer::indexOf(vector<expr>& vec, expr& e) {
+    for (int i=0; i<vec.size(); i++) {
+        if (vec[i].hash() == e.hash()) return i;
+    }
+    return -1;
+}
+
+int Z3Buffer::indexOf(vector<int>& vec, int val) {
+    for (int i=0; i<vec.size(); i++) {
+        if (vec[i] == val) return i;
+    }
+    return -1;
+}
+
+expr Z3Buffer::mkEq(expr v1, expr v2) {
+    if (v1.hash() == v2.hash()) return z3_ctx.bool_val(true);
+    string s = v1.get_sort().to_string();
+    if (s == "Bool" || s == "Int" || s == "SetInt") return v1 == v2;
+    return z3_ctx.int_const(v1.to_string().c_str()) == z3_ctx.int_const(v2.to_string().c_str());
+}
+
+
+bool Z3Buffer::isFun(expr e, string s) {
+    return e.decl().name().str() == s;
+}
+
+
+bool Z3Buffer::isLocation(expr e) {
+    string s = e.get_sort().to_string();
+    if (s == "Bool" || s == "Int" || s == "SetInt") return false;
+    return true;
+}
+
+
+expr Z3Buffer::getFirstElement(int case_i, expr S) {
+    if ((case_i&6) == 0) {
+        return getMin(S);
+    } else if((case_i&6) == 2) {
+        return getMax(S);
+    }
+    return expr(z3_ctx);
+}

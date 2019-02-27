@@ -171,6 +171,11 @@ void Parser::show() {
     showEnv();
 }
 
+
+Parser::Parser(istream& is, TokenScannerFactory& factory) :m_scanner(is), m_factory(factory) { 
+    addVarScope();
+}
+
 Parser::~Parser() {
     for (auto item : m_sort_table) {
         delete item.second;

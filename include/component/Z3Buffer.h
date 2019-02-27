@@ -54,7 +54,7 @@ public:
     expr getEmptyset();
     expr getSetinterset(expr& S1, expr& S2);
     expr getSetunion(expr& S1, expr& S2);
-    expr getSet(expr& i);
+    expr getSet(expr i);
     expr getSetminus(expr& S1, expr& S2);
     expr getSubset(expr& S1, expr& S2);
     expr getBelongsto(expr& i, expr& S);
@@ -66,6 +66,25 @@ public:
     void getIntItems(expr e, Z3ExprSet& items);
 
     expr getQuantElmt(z3::expr tm1, z3::expr tm2);
+
+    void getBVars(expr e, Z3ExprSet& vars_set);
+    void getFoVars(expr e, Z3ExprSet& vars_set);
+    void getSoVars(expr e, Z3ExprSet& vars_set);
+    void getLVars(expr e, Z3ExprSet& vars_set);
+
+    bool isConstant(expr e);
+
+    int indexOf(vector<expr>& vec, expr& e);
+    int indexOf(vector<int>& vec, int i);
+
+    expr mkEq(expr v1, expr v2);
+    bool isFun(expr e, string s);
+    bool isLocation(expr e);
+
+    expr getFirstElement(int case_i, expr S);
+
+    expr mkIntVar(string prefix, int p, int a, int q);
+    expr mkIntVar(string prefix, int i);
 
     void show();
 

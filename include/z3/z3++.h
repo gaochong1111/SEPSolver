@@ -1376,7 +1376,7 @@ namespace z3 {
        \brief Wraps a Z3_ast as an expr object. It also checks for errors.
        This function allows the user to use the whole C API with the C++ layer defined in this file.
     */
-    inline expr to_expr(context & c, Z3_ast a) {
+    inline expr toExpr(context & c, Z3_ast a) {
         c.check_error();
         assert(Z3_get_ast_kind(c, a) == Z3_APP_AST ||
                Z3_get_ast_kind(c, a) == Z3_NUMERAL_AST ||
@@ -1398,85 +1398,85 @@ namespace z3 {
     /**
        \brief unsigned less than or equal to operator for bitvectors.
     */
-    inline expr ule(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvule(a.ctx(), a, b)); }
+    inline expr ule(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvule(a.ctx(), a, b)); }
     inline expr ule(expr const & a, int b) { return ule(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr ule(int a, expr const & b) { return ule(b.ctx().num_val(a, b.get_sort()), b); }
     /**
        \brief unsigned less than operator for bitvectors.
     */
-    inline expr ult(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvult(a.ctx(), a, b)); }
+    inline expr ult(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvult(a.ctx(), a, b)); }
     inline expr ult(expr const & a, int b) { return ult(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr ult(int a, expr const & b) { return ult(b.ctx().num_val(a, b.get_sort()), b); }
     /**
        \brief unsigned greater than or equal to operator for bitvectors.
     */
-    inline expr uge(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvuge(a.ctx(), a, b)); }
+    inline expr uge(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvuge(a.ctx(), a, b)); }
     inline expr uge(expr const & a, int b) { return uge(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr uge(int a, expr const & b) { return uge(b.ctx().num_val(a, b.get_sort()), b); }
     /**
        \brief unsigned greater than operator for bitvectors.
     */
-    inline expr ugt(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvugt(a.ctx(), a, b)); }
+    inline expr ugt(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvugt(a.ctx(), a, b)); }
     inline expr ugt(expr const & a, int b) { return ugt(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr ugt(int a, expr const & b) { return ugt(b.ctx().num_val(a, b.get_sort()), b); }
     /**
        \brief unsigned division operator for bitvectors.
     */
-    inline expr udiv(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvudiv(a.ctx(), a, b)); }
+    inline expr udiv(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvudiv(a.ctx(), a, b)); }
     inline expr udiv(expr const & a, int b) { return udiv(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr udiv(int a, expr const & b) { return udiv(b.ctx().num_val(a, b.get_sort()), b); }
 
     /**
        \brief signed remainder operator for bitvectors
     */
-    inline expr srem(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvsrem(a.ctx(), a, b)); }
+    inline expr srem(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvsrem(a.ctx(), a, b)); }
     inline expr srem(expr const & a, int b) { return srem(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr srem(int a, expr const & b) { return srem(b.ctx().num_val(a, b.get_sort()), b); }
 
     /**
        \brief signed modulus operator for bitvectors
     */
-    inline expr smod(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvsmod(a.ctx(), a, b)); }
+    inline expr smod(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvsmod(a.ctx(), a, b)); }
     inline expr smod(expr const & a, int b) { return smod(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr smod(int a, expr const & b) { return smod(b.ctx().num_val(a, b.get_sort()), b); }
     
     /**
        \brief unsigned reminder operator for bitvectors
     */
-    inline expr urem(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvurem(a.ctx(), a, b)); }
+    inline expr urem(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvurem(a.ctx(), a, b)); }
     inline expr urem(expr const & a, int b) { return urem(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr urem(int a, expr const & b) { return urem(b.ctx().num_val(a, b.get_sort()), b); }
     
     /**
        \brief shift left operator for bitvectors
     */
-    inline expr shl(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvshl(a.ctx(), a, b)); }
+    inline expr shl(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvshl(a.ctx(), a, b)); }
     inline expr shl(expr const & a, int b) { return shl(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr shl(int a, expr const & b) { return shl(b.ctx().num_val(a, b.get_sort()), b); }
     
     /**
        \brief logic shift right operator for bitvectors
     */
-    inline expr lshr(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvlshr(a.ctx(), a, b)); }
+    inline expr lshr(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvlshr(a.ctx(), a, b)); }
     inline expr lshr(expr const & a, int b) { return lshr(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr lshr(int a, expr const & b) { return lshr(b.ctx().num_val(a, b.get_sort()), b); }
     
     /**
        \brief arithmetic shift right operator for bitvectors
     */
-    inline expr ashr(expr const & a, expr const & b) { return to_expr(a.ctx(), Z3_mk_bvashr(a.ctx(), a, b)); }
+    inline expr ashr(expr const & a, expr const & b) { return toExpr(a.ctx(), Z3_mk_bvashr(a.ctx(), a, b)); }
     inline expr ashr(expr const & a, int b) { return ashr(a, a.ctx().num_val(b, a.get_sort())); }
     inline expr ashr(int a, expr const & b) { return ashr(b.ctx().num_val(a, b.get_sort()), b); }
     
     /**
        \brief Extend the given bit-vector with zeros to the (unsigned) equivalent bitvector of size m+i, where m is the size of the given bit-vector.
     */
-    inline expr zext(expr const & a, unsigned i) { return to_expr(a.ctx(), Z3_mk_zero_ext(a.ctx(), i, a)); }
+    inline expr zext(expr const & a, unsigned i) { return toExpr(a.ctx(), Z3_mk_zero_ext(a.ctx(), i, a)); }
     
     /**
        \brief Sign-extend of the given bit-vector to the (signed) equivalent bitvector of size m+i, where m is the size of the given bit-vector.
     */
-    inline expr sext(expr const & a, unsigned i) { return to_expr(a.ctx(), Z3_mk_sign_ext(a.ctx(), i, a)); }
+    inline expr sext(expr const & a, unsigned i) { return toExpr(a.ctx(), Z3_mk_sign_ext(a.ctx(), i, a)); }
     
     template<typename T> class cast_ast;
 

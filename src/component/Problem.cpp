@@ -15,51 +15,156 @@
 extern z3::context z3_ctx;
 extern Z3Buffer z3_buffer;
 
-Problem::Problem():m_pred(nullptr), m_phi(z3_ctx), m_psi(z3_ctx) {}
+Problem::Problem():m_pred(nullptr), m_phi(z3_ctx), m_psi(z3_ctx),
+    m_abs_phi(z3_ctx), m_phi_free_items(z3_ctx), m_abs_psi(z3_ctx), m_psi_free_items(z3_ctx), 
+    m_new_vars(z3_ctx) {}
 
-expr Problem::getAbsPhi(expr_vector& free_items) {
+void Problem::setPhi(expr& phi) {
+    m_phi = phi;
+    initInfo(phi, m_phi_location, m_phi_location_relation);
+}
 
-    cout << "computing abs phi: \n";
-    expr_vector new_vars(z3_ctx); // new vars
-    expr_vector data_items(z3_ctx);
-    int num = m_phi.num_args();
-    for (int i=0; i<num-1; i++) {
-        string sort_name = m_phi.arg(i).arg(0).get_sort().to_string();
-        if (sort_name == "Int") {
-            // check free items
-            Z3ExprSet items;
-            z3_buffer.getIntItems(m_phi.arg(i), items);
-            if (items.size() > 2) {
-                free_items.push_back(m_phi.arg(i));
+void Problem::setPsi(expr& psi) {
+    m_psi = psi;
+    initInfo(psi, m_psi_location, m_psi_location_relation);
+}
+
+void Problem::setSolver(SepSolver* ss) {
+    m_ss = ss;
+}
+
+void Problem::initInfo(expr& phi, vector<expr>& locations, RelationMatrix& rm) {
+    Z3ExprSet lvars;
+    z3_buffer.getLVars(phi, lvars);
+    locations.insert(locations.end(), lvars.begin(), lvars.end());
+    for (int i=0; i<locations.size(); i++) {
+        vector<int> v;
+        for (int i=0; i<locations.size(); i++) {
+            v.push_back(-1);
+        }
+        rm.push_back(v);
+    }
+
+    for (int i=0; i<phi.num_args()-1; i++) {
+        if (phi.arg(i).num_args() > 0) {
+            string s = phi.arg(i).arg(0).get_sort().to_string();
+            if (s != "Bool" && s != "Int" && s != "SetInt") {
+                expr E = phi.arg(i).arg(0);
+                expr F = phi.arg(i).arg(1);
+                int idx_E = z3_buffer.indexOf(locations, E);
+                int idx_F = z3_buffer.indexOf(locations, F);
+                string op = phi.arg(i).decl().name().str();
+                if (op == "=") {
+                    rm[idx_E][idx_F] = 1;
+                } else {
+                    rm[idx_E][idx_F] = 0;
+                }
             }
         }
-        // abstraction of data items
-        if (sort_name == "SetInt" || sort_name == "Int") {
-            data_items.push_back(m_phi.arg(i));
+   }
+}
+
+void Problem::initRm() {
+    initRm(m_abs_phi, m_phi_location, m_phi_location_relation, m_phi_free_items);
+    initPhiAllocated();
+    initRm(m_abs_psi, m_psi_location, m_psi_location_relation, m_psi_free_items);
+}
+
+expr Problem::getAbsPhi(expr_vector& free_items) {
+    if (Z3_ast(m_abs_phi) == nullptr) {
+        m_abs_phi = getAbs(free_items, m_phi);
+        for (int i=0; i<free_items.size(); i++) m_phi_free_items.push_back(free_items[i]);
+    }
+    return m_abs_phi;
+}
+
+expr Problem::getAbsPsi(expr_vector& free_items) {
+    if (Z3_ast(m_abs_psi) == nullptr) {
+        m_abs_psi = getAbs(free_items, m_psi);
+        for (int i=0; i<free_items.size(); i++) m_psi_free_items.push_back(free_items[i]);
+    }
+    return m_abs_psi;
+}
+
+void Problem::initRm(expr& abs, vector<expr>& locations, RelationMatrix& rm, expr_vector& free_items) {
+    for (int i=0; i<rm.size(); i++) {
+        for (int j=i+1; i<rm.size(); i++) {
+            if (rm[i][j] == -1) {
+                expr E = z3_ctx.int_const(locations[i].to_string().c_str());
+                expr F = z3_ctx.int_const(locations[j].to_string().c_str());
+                expr check_f = abs && E!=F;
+                if (m_ss->check(check_f, free_items) == "UNSAT") {
+                    rm[i][j] = 1;
+                }
+                check_f = abs && E==F;
+                if (m_ss->check(check_f, free_items) == "UNSAT") {
+                    rm[i][j] = 0;
+                } 
+            }
+        }
+    }
+}
+
+void Problem::initPhiAllocated() {
+    expr space = m_phi.arg(m_phi.num_args()-1);
+    for (int i=0; i<space.num_args(); i++) {
+        m_phi_space_allocated.push_back(-1);
+        expr atom = space.arg(i);
+        if (atom.decl().name().str() != "pto") {
+            string name = atom.arg(0).to_string();
+            name = name.append("_BOOL_").append(to_string(i)); 
+            expr new_bool = z3_ctx.bool_const(name.c_str());
+            expr check_f = m_abs_phi && new_bool;
+            string res = m_ss->check(check_f, m_phi_free_items);
+            if (res == "UNSAT") m_phi_space_allocated[i] = 0; 
+        }
+    }
+}
+
+expr Problem::getAbs(expr_vector& free_items, expr& phi) {
+
+    expr_vector data_items(z3_ctx);
+    int num = phi.num_args();
+    for (int i=0; i<num-1; i++) {
+        if (phi.arg(0).num_args() == 0) {
+            if (phi.arg(0).to_string() == "true") data_items.push_back(z3_ctx.bool_val(true));
+            else if (phi.arg(0).to_string() == "false") data_items.push_back(z3_ctx.bool_val(false));
         } else {
-            expr item1 = z3_ctx.int_const(m_phi.arg(i).arg(0).to_string().c_str());
-            expr item2 = z3_ctx.int_const(m_phi.arg(i).arg(1).to_string().c_str());
-            string fname = m_phi.arg(i).decl().name().str();
-            if (fname == "=") {
-                data_items.push_back(item1 == item2);
+            string sort_name = phi.arg(i).arg(0).get_sort().to_string();
+            if (sort_name == "Int") {
+                // check free items
+                Z3ExprSet items;
+                z3_buffer.getIntItems(phi.arg(i), items);
+                if (items.size() > 2) {
+                    free_items.push_back(phi.arg(i));
+                }
+            }
+            // abstraction of data items
+            if (sort_name == "SetInt" || sort_name == "Int") {
+                data_items.push_back(phi.arg(i));
             } else {
-                data_items.push_back(item1 != item2);
+                expr item1 = z3_ctx.int_const(phi.arg(i).arg(0).to_string().c_str());
+                expr item2 = z3_ctx.int_const(phi.arg(i).arg(1).to_string().c_str());
+                string fname = phi.arg(i).decl().name().str();
+                if (fname == "=") {
+                    data_items.push_back(item1 == item2);
+                } else {
+                    data_items.push_back(item1 != item2);
+                }
             }
         }
     }
     expr data_abs = mk_and(data_items);
-    cout << "data_abs: " << data_abs <<endl;
+    // cout << "data_abs: " << data_abs <<endl;
 
-    expr spatial = m_phi.arg(num-1);
+    expr spatial = phi.arg(num-1);
     num = spatial.num_args();
     expr_vector spatial_abs_items(z3_ctx);
     expr_vector new_bools(z3_ctx);
     for (int i=0; i<num; i++) {
         expr atom = spatial.arg(i);
-        spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, new_vars, free_items));
+        spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, free_items));
     }
-
-    cout << "new_vars: " << new_vars <<endl;
 
     expr spatial_abs = mk_and(spatial_abs_items);
 
@@ -71,8 +176,8 @@ expr Problem::getAbsPhi(expr_vector& free_items) {
     // cout << "spatial_star: " << spatial_star <<endl;
 
     // add var env
-    for (unsigned int i=0; i<new_vars.size(); i++) {
-        z3_buffer.addVarEnv(new_vars[i]);
+    for (unsigned int i=0; i<m_new_vars.size(); i++) {
+        z3_buffer.addVarEnv(m_new_vars[i]);
     }
     for (unsigned int i=0; i<new_bools.size(); i++) {
         z3_buffer.addVarEnv(new_bools[i]);
@@ -94,7 +199,41 @@ void Problem::show() {
     cout << "psi: " << m_psi << endl;
 }
 
-expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& new_vars, expr_vector& free_items) {
+void Problem::showEqClass() {
+    cout << "phi: \n";
+    for (int i=0; i<m_phi_location_relation.size(); i++) {
+        for (int j=0; j<m_phi_location_relation.size(); j++) {
+            cout << m_phi_location[i] << ", " << m_phi_location[j] << " --> " << m_phi_location_relation[i][j] << "   ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    
+    for (int i=0; i<m_phi_location.size(); i++) {
+        cout << m_phi_location[i] << " -- " << m_phi_location_eq_class[i] <<endl;
+    }
+
+    for (int i=0; i<m_phi_eq_class.size(); i++) {
+        cout << "eq_" << i << ": [";
+        for (auto idx : m_phi_eq_class[i]) cout << idx << ", ";
+        cout << "]\n";
+
+    }
+
+    cout << "psi: \n";
+    for (int i=0; i<m_psi_location.size(); i++) {
+        cout << m_psi_location[i] << " -- " << m_psi_location_eq_class[i] <<endl;
+    }
+
+    for (int i=0; i<m_psi_eq_class.size(); i++) {
+        cout << "eq_" << i << ": [";
+        for (auto idx : m_psi_eq_class[i]) cout << idx << ", ";
+        cout << "]\n";
+
+    }
+}
+
+expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& free_items) {
     ostringstream oss;
     string new_name;
     oss << atom.arg(0) << "_BOOL_" << i; 
@@ -144,13 +283,12 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
         // unfold1
         expr unfold1 = bool_prefix && m_pred->getUnfold1().substitute(src_pars, dst_pars);
         // unfold2
-        expr unfold2 = bool_prefix && m_pred->getUnfold2(new_vars).substitute(src_pars, dst_pars);
+        expr unfold2 = bool_prefix && m_pred->getUnfold2(m_new_vars).substitute(src_pars, dst_pars);
 
         expr free_item = m_pred->getFreeItem();
         if (Z3_ast(free_item) != 0) {
-            free_item.substitute(src_pars, dst_pars);
             for (unsigned int j=0; j<free_item.num_args(); j++) {
-                free_items.push_back(free_item.arg(j));
+                free_items.push_back(free_item.arg(j).substitute(src_pars, dst_pars));
             }
         }
 
@@ -185,4 +323,641 @@ int Problem::getSuffixIdx(string& str) {
     string istr = str.substr(i+6, str.length()-i-6);
     str = str.substr(0, i);
     return stoi(istr);
+}
+
+void Problem::_computeEqClass(RelationMatrix& rm, 
+    vector<int>& loc_eq, vector<set<int>>& eq_class) {
+    // clear
+    loc_eq.clear();
+    eq_class.clear();
+
+    for (int i=0; i<rm.size(); i++) {
+        loc_eq.push_back(-1);
+    }
+    set<int> eq;
+    for (int i=0; i<rm.size(); i++) {
+        for (int j=i+1; j<rm.size(); j++) {
+            if (rm[i][j] == 1 || rm[j][i] == 1) {
+                if (loc_eq[i] == -1) {
+                    loc_eq[i] = eq_class.size();
+                    loc_eq[j] = loc_eq[i];
+                    eq.clear();
+                    eq.insert(i);
+                    eq.insert(j);
+                    eq_class.push_back(eq);
+                } else {
+                    loc_eq[j] = loc_eq[i];
+                    eq_class[loc_eq[i]].insert(j);
+                }
+            }
+        }
+    }
+
+    for (int i=0; i<rm.size(); i++) {
+        if (loc_eq[i] == -1) {
+            loc_eq[i] = eq_class.size();
+            eq.clear();
+            eq.insert(i);
+            eq_class.push_back(eq);
+        }
+    }
+}
+
+
+bool Problem::checkAllocatingPlans(Graph& g_phi, Graph& g_psi) {
+    vector<int> cc_cycle_num = g_phi.getCcCycleNum();
+    int cc_num = cc_cycle_num.size();
+    int cc_total = 0;
+    for (int i=0; i<cc_num; i++) {
+        cc_total += cc_cycle_num[i];
+    }
+    cout << "cc_total: " << cc_total <<endl;
+    expr abs_back = m_abs_phi;
+    Graph g_back = g_phi;
+
+    vector<int> omega(cc_num, 0);
+    expr omega_abs_i = m_abs_phi;
+    expr omega_abs_i1(z3_ctx);
+    Graph omega_g_i = g_phi;
+    Graph omega_g_i1;
+    int j = 0;
+    do {
+        bool is_feasible = true;
+        if (cc_total > 0) {
+            j++;
+            getOmegaAbs(omega_abs_i, omega_g_i, omega, omega_abs_i1); // next omega
+            omega_abs_i = omega_abs_i1;
+            if (m_ss->check(omega_abs_i, m_phi_free_items) == "SAT") {
+                // feasible 
+                initRm(omega_abs_i, m_phi_location, m_phi_location_relation, m_phi_free_items);
+                constructPhiGraph(omega_g_i1);
+                m_abs_phi = omega_abs_i;
+                omega_g_i = omega_g_i1;
+                string fname = "omega_";
+                fname.append(to_string(j));
+                expr space = m_phi.arg(m_phi.num_args()-1);
+                omega_g_i.print(m_phi_location, space, fname);
+                if (!omega_g_i.isDagLike()) {
+                    // recursive
+                    bool res = checkAllocatingPlans(omega_g_i, g_psi);
+                    if (!res) return false;
+                }
+            } else {
+                is_feasible = false;
+            }
+        }
+
+        if (is_feasible) {
+            cout << "Matching ...." <<endl;
+            if(!matchGraph(omega_g_i, g_psi)) {
+                return false;
+            }
+        }
+        // next 
+        omega_abs_i = abs_back;
+        omega_g_i = g_back;
+        m_abs_phi = abs_back;
+    } while (nextOmega(omega, cc_cycle_num));
+    return true;
+}
+
+
+void Problem::getOmegaAbs(expr& phi_abs, Graph& g, vector<int>& omega, expr& omega_phi_abs) {
+    //
+    expr space = m_phi.arg(m_phi.num_args()-1);
+    std::vector<int> cc_cycle_num = g.getCcCycleNum();
+    std::pair<int,int> coords;
+    std::vector<Graph::edge_t> cycle;
+    int cc_num = cc_cycle_num.size();
+
+    expr_vector and_items(z3_ctx);
+    for (int i=0; i<cc_num; i++) {
+        int omega_i = omega[i];
+        if (omega_i==0) {
+            // ! && !
+            expr_vector not_and_items(z3_ctx);
+            for (int j=0; j<cc_cycle_num[i]; j++) {
+                coords.first = i;
+                coords.second = j;
+                cycle = g.getEdgeCycle(coords);
+                int cycle_size = cycle.size();
+                // edge
+                for (int k=0; k<cycle_size; k++) {
+                    Graph::edge_t edge = cycle[k];
+                    int atom_idx = edge.second;
+                    z3::expr E = space.arg(atom_idx).arg(0);
+                    std::string E_bool_name = E.to_string().append("_BOOL_").append(to_string(atom_idx));
+                    z3::expr E_bool = z3_ctx.bool_const(E_bool_name.c_str());
+                    not_and_items.push_back(!E_bool);
+                    // omega_phi_abs = omega_phi_abs && (!E_bool);
+                }
+            }
+            and_items.push_back(mk_and(not_and_items));
+        } else {
+            //
+            coords.first = i;
+            coords.second = omega_i-1;
+            cycle = g.getEdgeCycle(coords);
+            int cycle_size = cycle.size();
+            expr_vector or_items(z3_ctx);
+
+            // edge
+            for (int k=0; k<cycle_size; k++) {
+                Graph::edge_t edge = cycle[k];
+                int atom_idx = edge.second;
+                z3::expr E = space.arg(atom_idx).arg(0);
+                std::string E_bool_name = E.to_string().append("_BOOL_").append(to_string(atom_idx));
+                z3::expr E_bool = z3_ctx.bool_const(E_bool_name.c_str());
+
+                or_items.push_back(!E_bool);
+            }
+            and_items.push_back(!mk_and(or_items));
+        }
+    }
+    omega_phi_abs = phi_abs && mk_and(and_items);
+}
+
+bool Problem::matchGraph(Graph& omega_g_i, Graph& g_psi) {
+    //  get psi_edges
+    std::vector<std::pair<std::pair<int, int>, int> > psi_edge_vec;
+    g_psi.getEdges(psi_edge_vec);
+    // get omega_edges
+    std::vector<std::pair<std::pair<int, int>, int> > omega_edge_vec;
+    omega_g_i.getEdges(omega_edge_vec);
+
+    std::map<int, int> omega_edge_table;// all edges
+    for (int i=0; i<omega_edge_vec.size(); i++) {
+        omega_edge_table[omega_edge_vec[i].second] = -1;
+    }
+
+    //CC
+    std::vector<int> cc_cycle_num = omega_g_i.getCcCycleNum();
+    std::vector<std::pair<int, int> > cc_cycle_table;
+    for (int i=0; i<cc_cycle_num.size(); i++) {
+        std::pair<int, int> selected(-1, -1);
+        if (cc_cycle_num[i] > 0) {
+            selected.first = 0; // -1: no cycle; 0: no process; 1: candidate  2:selected
+        }
+        cc_cycle_table.push_back(selected);
+    }
+
+    std::vector<z3::expr> psi_const_vec = m_psi_location;
+    std::vector<z3::expr> phi_const_vec = m_phi_location;
+    z3::expr psi_space = m_psi.arg(m_psi.num_args()-1);
+    z3::expr phi_space = m_phi.arg(m_phi.num_args()-1);
+
+    std::pair<std::pair<int, int>, int> edge;
+    // for each edge match one path in omega_graph
+    for (int i=0; i<psi_edge_vec.size(); i++) {
+        cout <<"psi edge: "<< psi_const_vec[psi_edge_vec[i].first.first] << "--" << psi_edge_vec[i].second << "--" << psi_const_vec[psi_edge_vec[i].first.second] << std::endl;
+
+        edge = psi_edge_vec[i];
+        z3::expr psi_atom = psi_space.arg(edge.second);
+        int src = z3_buffer.indexOf(phi_const_vec, psi_const_vec[edge.first.first]);
+        int dst = z3_buffer.indexOf(phi_const_vec, psi_const_vec[edge.first.second]);
+
+        src = omega_g_i.getVertexId(src);
+        dst = omega_g_i.getVertexId(dst);
+
+        // src and dst are in the same cc
+        int cc_id = omega_g_i.whichCc(src);
+        if (cc_id != omega_g_i.whichCc(dst)) return false; // path in different cc
+
+        std::vector<Graph::edge_descriptor> path = omega_g_i.getPath(src, dst);
+
+        cout << "path: \n";
+        for (int j=0; j<path.size(); j++) {
+            cout << omega_g_i.source(path[j]);
+            cout << "---";
+            cout << omega_g_i.getEdgeProperty(path[j]);
+            cout << "---";
+            cout << omega_g_i.target(path[j]) << std::endl;
+
+        }
+
+        std::vector<int> paths;
+        for (int j=0; j<path.size(); j++) {
+            paths.push_back(omega_g_i.getEdgeProperty(path[j]));
+        }
+
+        // special case
+        if (paths.size()==0 && src!=dst) return false;
+
+        int edge_num = paths.size();
+        if (psi_atom.decl().name().str() == "pto") {
+            // pto match pto
+            if (edge_num==1) {
+                z3::expr omega_phi_atom = phi_space.arg(paths[0]);
+                if (omega_phi_atom.decl().name().str() != "pto") {
+                    return z3::unsat;
+                }
+                // match pto atom
+                if(!matchPto(psi_atom, omega_phi_atom)) return false;
+            } else {
+                return false;
+            }
+        } else {
+            // pred_atom match path
+            if (cc_cycle_num[cc_id] == 0) {
+                cout << "omega graph is dag. \n";
+                // dag
+                if(!matchPredicate(psi_atom, paths)) return false;
+            } else {
+                cout << "omega graph is dag-like. \n";
+                // dag_like (each cc has at most one cycle)
+                std::pair<int, int> coord(cc_id, 0);
+                std::vector<int> cycle = omega_g_i.getCycle(coord);
+
+                std::vector<Graph::edge_t> edge_cycle = omega_g_i.getEdgeCycle(coord);
+
+                cout << "paths size: " << paths.size() << std::endl;
+                // match paths
+                bool match_res1 = matchPredicate(psi_atom, paths);
+                // match paths+cycle
+                std::vector<Graph::edge_descriptor> cycle_path = omega_g_i.getPath(dst);
+                int left_end = -1;
+                for (int j=0; j<edge_cycle.size(); j++) {
+                    if (left_end == -1) {
+                    if (edge_cycle[j].first.first == dst) {
+                        left_end = j;
+                        paths.push_back(edge_cycle[j].second);
+                    }
+                    } else {
+                    paths.push_back(edge_cycle[j].second);
+                    }
+                }
+                for (int j=0; j<left_end; j++) {
+                    paths.push_back(edge_cycle[j].second);
+                }
+                for (int j=0; j<edge_cycle.size(); j++) {
+                    cout <<"cycle edge: "<< edge_cycle[j].first.first << "--" << (edge_cycle[j].second) << "--" << edge_cycle[j].first.second << std::endl;
+                }
+
+                bool match_res2 = true;
+
+                if (edge_cycle.size() > 0) {
+                    match_res2 = matchPredicate(psi_atom, paths);
+                }
+
+                cout << "match_res1: " << match_res1 << ", match_res2: " << match_res2 << std::endl;
+
+                // whether dst and last_src are in cycle
+                int last_src = -1;
+                if (path.size() > 0) {
+                    last_src = omega_g_i.source(path[path.size()-1]);
+                }
+                if (z3_buffer.indexOf(cycle, dst) != -1 && z3_buffer.indexOf(cycle, last_src) == -1) {
+                    // dst in, last_src not in
+                    if (cc_cycle_table[cc_id].first != 2) {
+                        if (match_res1 && match_res2) {
+                            cc_cycle_table[cc_id].first = 1;
+                            cc_cycle_table[cc_id].second = i;
+                        } else if (!match_res1 && match_res2) {
+                            cc_cycle_table[cc_id].first = 2;
+                            cc_cycle_table[cc_id].second = i;
+                            edge_num = paths.size(); // add edges
+                        } else if (!match_res1 && !match_res2) {
+                            return false;
+                        }
+                    } else {
+                        if (!match_res1) return false;
+                    }
+                } else if(z3_buffer.indexOf(cycle, dst) != -1 && src==dst){
+                    // dst in, last_src in, src == dst
+                    if (cc_cycle_table[cc_id].first != 2 && match_res2) {
+                        cc_cycle_table[cc_id].first = 1;
+                        cc_cycle_table[cc_id].second = i;
+                    }
+                } else {
+                    if (!match_res1) return false;
+                    if (z3_buffer.indexOf(cycle, dst) != -1) {
+                        // dst in cycle
+                        cc_cycle_table[cc_id].first = 2;
+                    }
+                }
+            }
+        }
+
+        for (int j=0; j<edge_num; j++) {
+            omega_edge_table[paths[j]] ++;
+        }
+    }
+
+    // check global info
+    cout <<"cc_cycle_table: \n";
+    for (int i=0; i<cc_cycle_table.size(); i++) {
+
+        cout << "cc_cycle_num: " << i << " , status: " << cc_cycle_table[i].first << std::endl;
+
+        if (cc_cycle_table[i].first==0) return false;
+        if (cc_cycle_table[i].first==1) {
+            std::pair<int, int> coord(i, 0);
+            std::vector<int> cycle = omega_g_i.getCycle(coord);
+            std::vector<Graph::edge_descriptor> cycle_path = omega_g_i.getPath(cycle[0]);
+            for (int j=0; j<cycle_path.size(); j++) {
+                int path_idx = omega_g_i.getEdgeProperty(cycle_path[j]);
+                omega_edge_table[path_idx]++;
+            }
+        }
+    }
+
+    //
+    cout << "omega_edges_table: \n";
+
+    std::map<int, int>::iterator iter;
+    int i=0;
+    for (iter=omega_edge_table.begin(); iter!=omega_edge_table.end(); iter++, i++) {
+        cout << "edge: " << i <<", property: " <<iter->first << " , status: " << iter->second << std::endl;
+        if (iter->second!=0) return false;
+    }
+    return true;
+}
+
+
+bool Problem::matchPto(expr& psi_atom, expr& omega_atom) {
+    // match pto --> pto
+    std::vector<z3::expr> psi_vars;
+    std::vector<z3::expr> phi_atom_vars;
+    psi_vars.push_back(psi_atom.arg(0));
+    phi_atom_vars.push_back(omega_atom.arg(0));
+    for (int i=0; i<psi_atom.arg(1).num_args(); i++) {
+        psi_vars.push_back(psi_atom.arg(1).arg(i));
+        phi_atom_vars.push_back(omega_atom.arg(1).arg(i));
+    }
+
+    z3::expr_vector eq_items(z3_ctx);
+    // match
+    for (int i=0; i<psi_vars.size(); i++) {
+        z3::expr psi_v = psi_vars[i];
+        z3::expr phi_v = phi_atom_vars[i];
+
+        if (psi_v.to_string() != phi_v.to_string()) {
+            string sort = psi_v.get_sort().to_string();
+            if (sort != "Bool" && sort != "Int" && sort != "SetInt") {
+                eq_items.push_back(z3_ctx.int_const(psi_v.to_string().c_str()) ==
+                       z3_ctx.int_const(phi_v.to_string().c_str()));
+            } else {
+                eq_items.push_back(psi_v == phi_v);
+            }
+        }
+    }
+
+    if (eq_items.size() > 0) {
+        z3::expr check_f = m_abs_phi && !z3::mk_and(eq_items);
+        z3::solver s(z3_ctx);
+        if (s.check() == z3::sat) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
+    // path match pred atom
+    expr phi_space = m_phi.arg(m_phi.num_args()-1);
+    z3::expr_vector data_items(z3_ctx);
+    if (paths.size() == 0) {
+        // abs_omega_phi |= pred atom is empty
+        int pars_size = psi_atom.num_args();
+        for (int i=0; i<pars_size/2; i++) {
+            data_items.push_back(z3_buffer.mkEq(psi_atom.arg(i), psi_atom.arg(i+pars_size/2)));
+        }
+    } else {
+        // generate conditions
+        int case_i = m_pred->getCase();
+
+        int psi_arg_size = psi_atom.num_args();
+        if (paths.size() == 1) {
+            // pred -> pto or pred
+            z3::expr phi_atom = phi_space.arg(paths[0]);
+
+            if (z3_buffer.isFun(phi_atom, "pto")) {
+                // left is pto
+                for (int i=1; i<phi_atom.arg(1).num_args(); i++) {
+                    if (z3_buffer.isLocation(phi_atom.arg(1).arg(i))) {
+                        data_items.push_back(z3_buffer.mkEq(phi_atom.arg(1).arg(i), psi_atom.arg(i)));
+                    } else {
+                        data_items.push_back(phi_atom.arg(1).arg(i) == z3_buffer.getFirstElement(case_i, psi_atom.arg(i)));
+                    }
+                }
+                // add data constraint
+                data_items.push_back(m_pred->subPhiR2(psi_atom.arg(psi_arg_size/2-1), 
+                    psi_atom.arg(psi_arg_size-1)));
+            } else {
+                // pred
+                for (int i=0; i<psi_arg_size; i++) {
+                    data_items.push_back(z3_buffer.mkEq(phi_atom.arg(i), psi_atom.arg(i)));
+                }
+            }
+        } else {
+            // path size >= 2
+
+            int idx = m_pred->getEinGamma();
+            // head
+            expr atom0 = phi_space.arg(paths[0]);
+            if (z3_buffer.isFun(atom0, "pto")) {
+                // pto
+                expr field_atom = atom0.arg(1);
+                for (int i=1; i<field_atom.num_args(); i++) {
+                    if (z3_buffer.isLocation(field_atom.arg(i))) {
+                        data_items.push_back(z3_buffer.mkEq(field_atom.arg(i), psi_atom.arg(i)));
+                    } else {
+                        data_items.push_back(field_atom.arg(i) == z3_buffer.getFirstElement(case_i, psi_atom.arg(i)));
+                    }
+                }
+            } else {
+                // pred
+                for (int i=1; i<psi_arg_size/2; i++) {
+                    data_items.push_back(z3_buffer.mkEq(atom0.arg(i), psi_atom.arg(i)));
+                }
+            }
+            // middle
+            expr psi_S = psi_atom.arg(psi_arg_size/2-1);
+            for (int k=0; k<paths.size()-1; k++) {
+                expr atom1 = phi_space.arg(paths[k]);
+                expr atom2 = phi_space.arg(paths[k+1]);
+                bool is_pto1 = z3_buffer.isFun(atom1, "pto");
+                bool is_pto2 = z3_buffer.isFun(atom2, "pto");
+
+                if (is_pto1 && is_pto2) {
+                    // pto pto
+                    expr field1 = atom1.arg(1);
+                    expr field2 = atom2.arg(1);
+                    expr data1 = field1.arg(field1.num_args()-1);
+                    expr data2 = field2.arg(field2.num_args()-1);
+                    // dll 
+                    if (idx != -1) {
+                        data_items.push_back(z3_buffer.mkEq(field1.arg(0), field2.arg(idx)));
+                    }
+
+                    data_items.push_back(z3_buffer.getBelongsto(data1, psi_S));
+                    data_items.push_back(z3_buffer.getBelongsto(data2, psi_S));
+                    data_items.push_back(m_pred->subPhiR2(data1, data2));
+
+                } else if (is_pto1 && !is_pto2) {
+                    // pto pred
+                    expr field1 = atom1.arg(1);
+                    expr data1 = field1.arg(field1.num_args()-1);
+                    expr atom2_S = atom2.arg(psi_arg_size/2-1);
+
+                    // dll 
+                    if (idx != -1) {
+                        data_items.push_back(z3_buffer.mkEq(field1.arg(0), atom2.arg(idx+1)));
+                    }
+                    expr single_set = z3_buffer.getSet(data1);
+                    expr set_union = z3_buffer.getSetunion(atom2_S, single_set);
+
+                    data_items.push_back(z3_buffer.getSubset(set_union, psi_S));
+                    data_items.push_back(m_pred->subPhiR2(data1, atom2_S));
+                } else if (!is_pto1 && is_pto2) {
+                    // pred pto
+                    expr field2 = atom2.arg(1);
+                    for (int i=1; i<field2.num_args(); i++) {
+                        if (z3_buffer.isLocation(field2.arg(i))) {
+                            data_items.push_back(z3_buffer.mkEq(field2.arg(i), atom2.arg(i)));
+                        } else {
+                            data_items.push_back(field2.arg(i) == z3_buffer.getFirstElement(case_i, atom1.arg(i+psi_arg_size/2)));
+                            expr atom1_S = atom1.arg(i+psi_arg_size/2);
+                            data_items.push_back(z3_buffer.getSubset(atom1_S, psi_S));
+                        }
+                    }
+
+                    // dll 
+                    if (idx != -1) {
+                        data_items.push_back(z3_buffer.mkEq(field2.arg(0), atom1.arg(idx+1)));
+                    }
+                } else {
+                    // pred pred
+                    for (int i=1; i<psi_arg_size/2; i++) {
+                        data_items.push_back(z3_buffer.mkEq(atom2.arg(i), atom1.arg(i+psi_arg_size/2)));
+                        if (!z3_buffer.isLocation(atom2.arg(i))) {
+                            expr atom2_S = atom2.arg(i);
+                            data_items.push_back(z3_buffer.getSubset(atom2_S, psi_S));
+                        }
+                    }
+                }
+            }
+
+            // tail
+            expr atom_tail = phi_space.arg(paths[paths.size()-1]);
+            if (z3_buffer.isFun(atom_tail, "pto")) {
+                // pto
+                // NONE
+            } else {
+                // pred
+                for (int i=psi_arg_size/2+1; i<psi_arg_size; i++) {
+                    data_items.push_back(z3_buffer.mkEq(atom_tail.arg(i), psi_atom.arg(i)));
+                }
+            }
+        }
+    }
+    cout << "data_items: " << data_items << std::endl;
+    if (data_items.size() > 0) {
+        expr check_f = m_abs_phi && !z3::mk_and(data_items);
+        if (m_ss->check(check_f, m_phi_free_items) == "UNSAT") {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+void Problem::constructPhiGraph(Graph& g) {
+    _constructPhiGraph(g, m_phi_location_relation);
+}
+
+void Problem::_constructPhiGraph(Graph& g, RelationMatrix& rm) {
+    // compute eq class by rm
+    _computeEqClass(rm, m_phi_location_eq_class, m_phi_eq_class);
+    // generate edges
+    expr space = m_phi.arg(m_phi.num_args()-1);
+    vector<EdgeType> edges;
+    for (int i=0; i<space.num_args(); i++) {
+        EdgeType edge;
+        edge.second = i;
+        expr atom = space.arg(i);
+        if (atom.decl().name().str() != "pto") {
+            if (m_phi_space_allocated[i] == 0) continue;
+
+            string name = atom.arg(0).to_string();
+            name = name.append("_BOOL_").append(to_string(i)); 
+            expr new_bool = z3_ctx.bool_const(name.c_str());
+            expr check_f = m_abs_phi && new_bool;
+            string res = m_ss->check(check_f, m_phi_free_items);
+            if (res == "UNSAT") continue;
+        }
+        atomToEdge(atom, edge, m_phi_location);
+        edges.push_back(edge);
+    }
+
+    g.init(m_phi_eq_class, edges);
+    g.print(m_phi_location, space, "graph_phi.dot");
+}
+
+
+void Problem::constructPsiGraph(Graph& g) {
+    // compute eq class by rm
+    _computeEqClass(m_psi_location_relation, m_psi_location_eq_class, m_psi_eq_class);
+    // generate edges
+    expr space = m_psi.arg(m_psi.num_args()-1);
+    vector<EdgeType> edges;
+    for (int i=0; i<space.num_args(); i++) {
+        EdgeType edge;
+        edge.second = i;
+        expr atom = space.arg(i);
+        if (atom.decl().name().str() != "pto") {
+            string name = atom.arg(0).to_string();
+            name = name.append("_BOOL_").append(to_string(i)); 
+            expr new_bool = z3_ctx.bool_const(name.c_str());
+            expr check_f = m_abs_psi && new_bool;
+            string res = m_ss->check(check_f, m_psi_free_items);
+            if (res == "UNSAT") continue;
+        }
+        atomToEdge(atom, edge, m_psi_location);
+        edges.push_back(edge);
+    }
+
+    g.init(m_psi_eq_class, edges);
+    g.print(m_psi_location, space, "graph_psi.dot");
+}
+
+void Problem::atomToEdge(expr& atom, EdgeType& edge, vector<expr>& locations) {
+
+    expr src = atom.arg(0);
+    expr dst(z3_ctx);
+    if (atom.decl().name().str() == "pto") {
+        dst = atom.arg(1).arg(0);
+    } else {
+        dst = atom.arg(atom.num_args()/2);
+    }
+    edge.first.first = z3_buffer.indexOf(locations, src);
+    edge.first.second = z3_buffer.indexOf(locations, dst);
+}
+
+bool Problem::isSat() {
+    return Z3_ast(m_psi) == nullptr;
+}
+
+bool Problem::nextOmega(vector<int>& curr, vector<int>& target) {
+    int size = curr.size();
+    int c = 1;
+    int i=size-1;
+
+    while(c>0 && i>=0) {
+        if (target[i] == 0) {
+            i--;
+        } else {
+            if (curr[i]+c <= target[i]) {
+                curr[i] = curr[i] + c;
+                c = 0;
+            } else {
+                curr[i] = (curr[i]+c) % (target[i]);
+                c = 1;
+            }
+            i --;
+        }
+    }
+
+    return c == 0;
 }
