@@ -68,12 +68,9 @@ void DefineFunctionParser::parse(Parser& parser) {
     // action
     parser.popVar();
 
-    // parser.showEnv();
-    
     parser.checkNext(RIGHT_PAREN, SYNTAX_ERROR_INFO[RIGHT_PAREN]);
     // action 
     parser.popVar();
-    // parser.showEnv();
 
     // TODO generate predicate definition
 

@@ -371,7 +371,6 @@ bool Problem::checkAllocatingPlans(Graph& g_phi, Graph& g_psi) {
     for (int i=0; i<cc_num; i++) {
         cc_total += cc_cycle_num[i];
     }
-    cout << "cc_total: " << cc_total <<endl;
     expr abs_back = m_abs_phi;
     Graph g_back = g_phi;
 
@@ -712,8 +711,158 @@ bool Problem::matchPto(expr& psi_atom, expr& omega_atom) {
     return true;
 }
 
-
 bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
+    // path match pred atom
+    expr phi_space = m_phi.arg(m_phi.num_args()-1);
+    z3::expr_vector data_items(z3_ctx);
+    if (paths.size() == 0) {
+        // abs_omega_phi |= pred atom is empty
+        int pars_size = psi_atom.num_args();
+        for (int i=0; i<pars_size/2; i++) {
+            data_items.push_back(z3_buffer.mkEq(psi_atom.arg(i), psi_atom.arg(i+pars_size/2)));
+        }
+    } else {
+        // divide path into several segments, continious ptos and continious predicates
+        int psi_arg_size = psi_atom.num_args();
+
+        vector<int> seg_start; // start, end,  flag:0,1[pto, pred]
+        vector<int> seg_end; 
+        vector<int> seg_flag;
+        expr atom = phi_space.arg(paths[0]);
+        int flag = 1;
+        if (z3_buffer.isFun(atom, "pto")) {
+            flag = 0;
+            seg_start.push_back(0);
+        } else {
+            seg_start.push_back(1);
+        }
+        seg_flag.push_back(flag);
+
+        for (int i=1; i<paths.size(); i++) {
+            expr atom = phi_space.arg(paths[i]);
+            expr atom_p = phi_space.arg(paths[i-1]);
+            if (atom.decl().name().str() != atom_p.decl().name().str()) {
+                flag = 1 - flag;
+                seg_end.push_back(i);
+                seg_start.push_back(i);
+                seg_flag.push_back(flag);
+            }
+        }
+        seg_end.push_back(paths.size());
+        expr_vector seg_preds(z3_ctx);
+        expr_vector args(z3_ctx);
+        expr_vector args_2(z3_ctx);
+        for (int i=0; i<psi_arg_size/2; i++) {
+            args.push_back(psi_atom.arg(i));
+        }
+        for (int i=0; i<seg_start.size(); i++) {
+            if (seg_flag[i] == 1) {
+                // pred
+                expr atom = phi_space.arg(paths[seg_end[i]-1]);
+                for (int j=psi_arg_size/2; j<psi_arg_size; j++) {
+                    args_2.push_back(atom.arg(j));
+                }
+            } else {
+                // pto
+                if (i == seg_start.size() - 1) {
+                    for (int j=psi_arg_size/2; j<psi_arg_size; j++) {
+                        args_2.push_back(psi_atom.arg(j));
+                    }
+                } else {
+                    expr atom = phi_space.arg(paths[seg_start[i+1]]);
+                    for (int j=0; j<psi_arg_size/2; j++) {
+                        args_2.push_back(atom.arg(j));
+                    }
+                }
+            }
+            
+            for(int j=0; j<args_2.size(); j++) {
+                args.push_back(args_2[j]);
+            }
+
+            seg_preds.push_back(m_pred->apply(args));
+
+            args.resize(0);
+            for (int j=0; j<args_2.size(); j++) {
+                args.push_back(args_2[j]);
+            }
+            args_2.resize(0);
+        }
+        // generating conditions
+        int seg_size = seg_preds.size();
+        for (int i=0; i<psi_arg_size/2; i++) {
+            data_items.push_back(z3_buffer.mkEq(psi_atom.arg(i), seg_preds[0].arg(i)));
+            data_items.push_back(z3_buffer.mkEq(psi_atom.arg(i+psi_arg_size/2), 
+                seg_preds[seg_size-1].arg(i+psi_arg_size/2)));
+        }
+        for (int i=0; i<seg_size; i++) {
+            if (seg_flag[i] == 1) {
+                // pred
+                for (int j=seg_start[i]; j<seg_end[j]-1; j++) {
+                    expr atom1 = phi_space.arg(paths[j]);
+                    expr atom2 = phi_space.arg(paths[j+1]);
+                    for (int k=0; k<psi_arg_size/2; k++) {
+                        data_items.push_back(z3_buffer.mkEq(atom1.arg(k+psi_arg_size/2), 
+                            atom2.arg(k)));
+                    }
+                }
+            } else {
+                // pto 
+                expr pred = seg_preds[i];
+                expr_vector evars(z3_ctx);
+                // cout << "predicate: " << pred <<endl;
+                expr_vector body_items(z3_ctx);
+                for (int j=seg_start[i]; j<seg_end[i]; j++) {
+                    expr atom = phi_space.arg(paths[j]);
+                    // unfold pred
+                    expr_vector vars(z3_ctx);
+                    for (int k=0; k<psi_arg_size/2; k++) {
+                        string name = pred.arg(k).to_string();
+                        name.append("_ES");
+                        expr v = z3_ctx.constant(name.c_str(), pred.arg(k).get_sort());
+                        vars.push_back(v);
+                        if (z3_buffer.isLocation(v)) {
+                            evars.push_back(z3_ctx.int_const(v.to_string().c_str()));
+                        } else {
+                            evars.push_back(v);
+                        }
+                    }
+                    expr unfoldp = m_pred->unfoldPredicate(vars);
+                    expr_vector pars = m_pred->getPars();
+                    expr_vector dst(z3_ctx);
+                    for (int k=0; k<pred.num_args(); k++) {
+                        dst.push_back(pred.arg(k));
+                    }
+                    unfoldp = unfoldp.substitute(pars, dst);
+                    body_items.push_back(unfoldp.arg(0)); // data
+                    expr pto = unfoldp.arg(1); // pto
+                    body_items.push_back(z3_buffer.mkEq(atom.arg(0), pto.arg(0)));
+                    expr fields = atom.arg(1);
+                    for (int k=0; k<fields.num_args(); k++) {
+                        body_items.push_back(z3_buffer.mkEq(fields.arg(k), pto.arg(1).arg(k)));
+                    }
+                    pred = unfoldp.arg(2); // new pred
+                }
+                for (int j=0; j<psi_arg_size/2; j++) {
+                    body_items.push_back(z3_buffer.mkEq(pred.arg(j), pred.arg(j+psi_arg_size/2)));
+                }
+                data_items.push_back(!forall(evars, !mk_and(body_items)));
+            }
+        }
+    }
+    // cout << "data_itmes: " << data_items <<endl;
+    if (data_items.size() > 0) {
+        expr check_f = m_abs_phi && !z3::mk_and(data_items);
+        if (m_ss->check(check_f, m_phi_free_items) == "UNSAT") {
+            cout << "match path is successful!\n";
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+bool Problem::_matchPredicate(expr& psi_atom, vector<int>& paths) {
     // path match pred atom
     expr phi_space = m_phi.arg(m_phi.num_args()-1);
     z3::expr_vector data_items(z3_ctx);
@@ -726,8 +875,8 @@ bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
     } else {
         // generate conditions
         int case_i = m_pred->getCase();
-
         int psi_arg_size = psi_atom.num_args();
+
         if (paths.size() == 1) {
             // pred -> pto or pred
             z3::expr phi_atom = phi_space.arg(paths[0]);

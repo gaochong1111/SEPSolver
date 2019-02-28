@@ -242,9 +242,9 @@ FA FA::getSubgraph(int N) {
     // add vertex
     result.addStates(m_state_num, "q_");
 
-    std::cout << "edge_count: " << edge_count << std::endl;
+    // std::cout << "edge_count: " << edge_count << std::endl;
 
-    std::cout << "sub edge_count: " << transitions.size() << std::endl;
+    // std::cout << "sub edge_count: " << transitions.size() << std::endl;
 
     // add transitions
     for (int i=0; i<transitions.size(); i++) {
@@ -360,8 +360,8 @@ FA FA::getFlow() {
     accept_states.push_back(id_map[accept]);
     result.setAcceptStates(accept_states);
 
-    std::cout << "flow state size: " << visited.size() << std::endl;
-    std::cout << "flow edge count: " << edge_count << std::endl;
+    // std::cout << "flow state size: " << visited.size() << std::endl;
+    // std::cout << "flow edge count: " << edge_count << std::endl;
 
     delete id_map;
     return result;
@@ -610,7 +610,7 @@ void FA::print(std::string name) {
     for (int i=0; i<m_accept_states.size(); i++) {
         getValidStates(m_accept_states[i], valid_ids);
     }
-    std::cout << "valid ids: " << valid_ids.size() << std::endl;
+    // std::cout << "valid ids: " << valid_ids.size() << std::endl;
 
     // out vertex
     /*

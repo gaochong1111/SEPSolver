@@ -49,6 +49,7 @@ public:
     bool checkAllocatingPlans(Graph& g_phi, Graph& g_psi);
     bool matchGraph(Graph& omega, Graph& g_psi);
     bool matchPto(expr& psi_atom, expr& omega_atom);
+    bool _matchPredicate(expr& psi_atom, vector<int>& path);
     bool matchPredicate(expr& psi_atom, vector<int>& path);
 
     bool isSat();

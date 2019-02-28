@@ -22,7 +22,7 @@ void CheckSatParser::parse(Parser& parser) {
 
     SepSolver ss;
     Problem* problem = parser.getProblem();
-    problem->show();
+    // problem->show();
     ss.setProblem(problem);
     ss.solve();
 }

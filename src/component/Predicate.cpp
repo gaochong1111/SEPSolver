@@ -34,6 +34,26 @@ Predicate::Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec)
     m_tr = getTr();
 }
 
+expr Predicate::unfoldPredicate(expr_vector& args) {
+    expr_vector x(z3_ctx);
+    for (int i=args.size()-1; i>=0; i--) {
+        x.push_back(args[i]);
+    }
+    expr body = m_rec_rule.body().substitute(x);
+
+    int num = body.num_args();
+    expr_vector data_items(z3_ctx);
+    for (int i=0; i<num-1; i++) {
+        data_items.push_back(body.arg(i));
+    }
+    expr_vector and_items(z3_ctx);
+    and_items.push_back(mk_and(data_items));
+
+    and_items.push_back(body.arg(num-1).arg(0));
+    and_items.push_back(body.arg(num-1).arg(1));
+    return mk_and(and_items);
+}
+
 void Predicate::getABC(expr_vector& alpha, expr_vector& beta, expr_vector& gamma) {
 
 }
@@ -286,6 +306,12 @@ expr Predicate::getTr() {
     } else {
         return z3_ctx.bool_val(false);
     }
+}
+
+
+expr Predicate::apply(expr_vector& args) {
+    func_decl fp = m_rec_app.decl();
+    return fp(args);
 }
 
 void Predicate::initStrtPars() {

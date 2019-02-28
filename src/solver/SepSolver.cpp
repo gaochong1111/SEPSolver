@@ -64,7 +64,7 @@ string SepSolver::check(expr& abs, expr_vector& free_items) {
         }
         return "UNSAT";
     } else {
-        cout << "complex case;\n";
+        // cout << "complex case;\n";
         vector<expr> vars;
         Z3ExprSet bvars;
         Z3ExprSet fovars;

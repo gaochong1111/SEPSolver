@@ -40,6 +40,9 @@ public:
     bool getStrt();
     expr getTr();
 
+    expr apply(expr_vector& args);
+    expr unfoldPredicate(expr_vector& args);
+
     void show();
 
 private:

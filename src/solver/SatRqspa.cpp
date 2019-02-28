@@ -309,7 +309,7 @@ z3::expr SatRqspa::generateExpr(FA& pa) {
     // std::set<int> x_ids;
     int accept_state = pa.getAcceptStates()[0];
 
-    std::cout << "compute flow : 0 -> " << accept_state << std::endl;
+    // std::cout << "compute flow : 0 -> " << accept_state << std::endl;
 
     // pa.printFlow(accept_state);
     m_new_ids.clear();
@@ -336,7 +336,7 @@ z3::expr SatRqspa::generateExpr(FA& pa) {
 
     z3::expr_vector ge_zero_items(z3_ctx);
 
-    std::cout << "tpaq size: " << m_tpaq_set.size() << std::endl;
+    // std::cout << "tpaq size: " << m_tpaq_set.size() << std::endl;
 
     for (z3::expr tpaq : m_tpaq_set) {
         ge_zero_items.push_back(tpaq >= 0);
@@ -400,16 +400,14 @@ z3::check_result SatRqspa::checkSat(std::vector<z3::expr>& vars, std::map<std::s
 
         z3::solver solver(z3_ctx);
         solver.add(pa_phi);
-        std::cout << "z3 is checking .....\n";
         z3::check_result result = solver.check();
 
         if (result == z3::sat) {
 
-            std::cout << "the result is sat! get models ....\n";
             // get model
             z3::model model = solver.get_model();
 
-            displayModel(model, vars, m_model);
+            // displayModel(model, vars, m_model);
 
             return z3::sat;
         }
