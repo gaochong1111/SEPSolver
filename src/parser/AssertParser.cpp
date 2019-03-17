@@ -28,4 +28,5 @@ void AssertParser::parse(Parser& parser) {
     } else {
         parser.addPhi(phi);
     }
+
 }

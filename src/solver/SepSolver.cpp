@@ -41,8 +41,11 @@ void SepSolver::solve() {
 
 
 string SepSolver::checkSat() {
+    cout << "check sat...\n";
     expr_vector free_items(z3_ctx);
+    m_problem->show();
     expr abs = m_problem->getAbsPhi(free_items);
+    // cout << abs <<endl;
 
     return check(abs, free_items);
 }
@@ -50,6 +53,7 @@ string SepSolver::checkSat() {
 string SepSolver::check(expr& abs, expr_vector& free_items) {
     if (free_items.size() == 0) {
         // simple case
+        cout << "simple case: \n";
         MonaTranslator mona_tl(abs);
         mona_tl.writeToFile("test.mona");
         std::map<std::string, std::string> model;

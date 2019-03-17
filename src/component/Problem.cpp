@@ -158,14 +158,19 @@ expr Problem::getAbs(expr_vector& free_items, expr& phi) {
     // cout << "data_abs: " << data_abs <<endl;
 
     expr spatial = phi.arg(num-1);
-    num = spatial.num_args();
     expr_vector spatial_abs_items(z3_ctx);
     expr_vector new_bools(z3_ctx);
-    for (int i=0; i<num; i++) {
-        expr atom = spatial.arg(i);
-        spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, free_items));
-    }
 
+    if (spatial.decl().name().str() == "sep") {
+        num = spatial.num_args();
+        for (int i=0; i<num; i++) {
+            expr atom = spatial.arg(i);
+            spatial_abs_items.push_back(getSpatialAbs(atom, i, new_bools, free_items));
+        }
+    } else {
+        spatial_abs_items.push_back(getSpatialAbs(spatial, 0, new_bools, free_items));
+    }
+    
     expr spatial_abs = mk_and(spatial_abs_items);
 
     expr spatial_star = getSpatialStar(new_bools);
@@ -235,6 +240,7 @@ void Problem::showEqClass() {
 
 expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vector& free_items) {
     ostringstream oss;
+
     string new_name;
     oss << atom.arg(0) << "_BOOL_" << i; 
     expr nbool = z3_ctx.bool_const(oss.str().c_str());
@@ -257,6 +263,8 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
             }
         }
         expr unfold0 = !nbool && mk_and(items);
+        // cout << "unfold0: " << unfold0 <<endl;
+   
         // unfold 1
         expr_vector src_pars(z3_ctx);
         expr_vector dst_pars(z3_ctx);
@@ -264,9 +272,9 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
         int idx = m_pred->getEinGamma();
         if (idx != -1) {
             src_pars.push_back(z3_ctx.int_const(pars[0].to_string().c_str()));
-            src_pars.push_back(z3_ctx.int_const(pars[idx+1].to_string().c_str()));
+            src_pars.push_back(z3_ctx.int_const(pars[pars.size()/2+1].to_string().c_str()));
             dst_pars.push_back(z3_ctx.int_const(atom.arg(0).to_string().c_str()));
-            dst_pars.push_back(z3_ctx.int_const(atom.arg(idx+1).to_string().c_str()));
+            dst_pars.push_back(z3_ctx.int_const(atom.arg(pars.size()/2+1).to_string().c_str()));
             string name = atom.arg(idx+1).to_string() + "_BOOL_" + to_string(i);
             expr nbool_idx = z3_ctx.bool_const(name.c_str());
             bool_items.push_back(nbool_idx);
@@ -281,7 +289,10 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
         // bool_prefix
         expr bool_prefix = mk_and(bool_items);
         // unfold1
+        // cout << "src_pars:" << src_pars <<endl;
+        // cout << "dst_pars:" << dst_pars <<endl;
         expr unfold1 = bool_prefix && m_pred->getUnfold1().substitute(src_pars, dst_pars);
+        // cout << "unfold1: " << unfold1 <<endl;
         // unfold2
         expr unfold2 = bool_prefix && m_pred->getUnfold2(m_new_vars).substitute(src_pars, dst_pars);
 
@@ -850,7 +861,7 @@ bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
             }
         }
     }
-    // cout << "data_itmes: " << data_items <<endl;
+    cout << "data_itmes: " << data_items <<endl;
     if (data_items.size() > 0) {
         expr check_f = m_abs_phi && !z3::mk_and(data_items);
         if (m_ss->check(check_f, m_phi_free_items) == "UNSAT") {

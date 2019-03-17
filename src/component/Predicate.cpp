@@ -108,7 +108,7 @@ expr Predicate::getUnfold1() {
     if (m_tr.hash() == z3_ctx.bool_val(false).hash()) return z3_ctx.bool_val(false);
     if (getEinGamma() != -1) {
         return !(z3_ctx.int_const((m_pars[0].to_string().c_str())) == 
-            z3_ctx.int_const((m_pars[m_pars.size()/2].to_string().c_str()))) && m_deltap; 
+            z3_ctx.int_const((m_pars[m_pars.size()/2+1].to_string().c_str()))) && m_deltap; 
     }
     return m_deltap;
 }
@@ -128,6 +128,7 @@ expr Predicate::getUnfold2(expr_vector& new_vars) {
        expr E = z3_ctx.int_const((m_pars[0].to_string().c_str()));
        items.push_back(!(E == new_vars[0]));
        items.push_back(!(E == new_vars[1]));
+
     } 
     expr_vector dt_alpha(z3_ctx);
     expr_vector dt_beta(z3_ctx);
@@ -772,5 +773,9 @@ expr Predicate::getIExpr(int i, expr_vector& m_svars) {
 
 
 string Predicate::newName(string name, int i) {
-    return name.replace(name.find("?"), 1, "") + "_N" + to_string(i);
+    int idx;
+    if ((idx = name.find("?")) == -1) {
+        return name + "_N" + to_string(i);
+    }
+    return name.replace(idx, 1, "") + "_N" + to_string(i);
 }
