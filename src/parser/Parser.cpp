@@ -106,7 +106,6 @@ void Parser::mkApp() {
                 args.push_back(*pa);
             }
             expr res = fd(args);
-
             // clear
             m_arg_stack.erase(m_arg_stack.begin() + arg_start, m_arg_stack.end());
             m_arg_stack.push_back(res);

@@ -49,7 +49,12 @@ void MonaTranslator::writeToFile(std::string name) {
     std::set<z3::expr, exprcomp> fo_vars;
     std::set<z3::expr, exprcomp> so_vars;
 
-    vector<expr>& var_env = z3_buffer.getVarEnv();
+    z3_buffer.getBVars(m_formula, bool_vars);
+    z3_buffer.getFoVars(m_formula, fo_vars);
+    z3_buffer.getSoVars(m_formula, so_vars);
+
+
+    /*vector<expr>& var_env = z3_buffer.getVarEnv();
     for (auto v : var_env) {
         if (v.get_sort().to_string() == "Bool") {
             bool_vars.insert(v);
@@ -59,6 +64,7 @@ void MonaTranslator::writeToFile(std::string name) {
             fo_vars.insert(v);
         }
     }
+    */
 
     std::string bool_decl_str = getDeclStr(0, bool_vars);
 

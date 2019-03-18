@@ -317,7 +317,8 @@ void Z3Buffer::getSoVars(expr exp, Z3ExprSet& vars_set) {
     if (exp.is_app()) {
         if (exp.is_const() && !isConstant(exp)) {
             if (exp.get_sort().to_string() == "SetInt")
-                vars_set.insert(exp);
+                if (exp.to_string() != "emptyset")
+                    vars_set.insert(exp);
         } else {
              for (unsigned int i=0; i<exp.num_args(); i++) {
                 getSoVars(exp.arg(i), vars_set);

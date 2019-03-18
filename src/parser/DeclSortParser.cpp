@@ -36,5 +36,13 @@ void DeclSortParser::parse(Parser& parser) {
     SortType* p_sort = new SortType(sort, snum);
     parser.addSort(sort, p_sort, row, col);
     z3_buffer.getSort(p_sort);
+
+    Var* pv = new Var("nil", p_sort);
+    parser.addVar(pv);
+    string setint = "SetInt";
+    SortType* ps = parser.getSort(setint);
+    pv = new Var("emptyset", ps);
+    parser.addVar(pv);
+
 }
 

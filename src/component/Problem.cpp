@@ -124,6 +124,7 @@ void Problem::initPhiAllocated() {
 expr Problem::getAbs(expr_vector& free_items, expr& phi) {
 
     expr_vector data_items(z3_ctx);
+    data_items.push_back(z3_ctx.int_const("nil") == 0); // nil == 0
     int num = phi.num_args();
     for (int i=0; i<num-1; i++) {
         if (phi.arg(0).num_args() == 0) {
@@ -131,6 +132,14 @@ expr Problem::getAbs(expr_vector& free_items, expr& phi) {
             else if (phi.arg(0).to_string() == "false") data_items.push_back(z3_ctx.bool_val(false));
         } else {
             string sort_name = phi.arg(i).arg(0).get_sort().to_string();
+            if (sort_name == "Bool") {
+                if (phi.arg(i).decl().name().str() == "implies") {
+                    data_items.push_back(!(phi.arg(i).arg(0) && !phi.arg(i).arg(1)));
+                } else {
+                    data_items.push_back(phi.arg(i));
+                }
+                continue;
+            }
             if (sort_name == "Int") {
                 // check free items
                 Z3ExprSet items;
@@ -176,6 +185,7 @@ expr Problem::getAbs(expr_vector& free_items, expr& phi) {
     expr spatial_star = getSpatialStar(new_bools);
 
     expr abs = data_abs && spatial_abs && spatial_star;
+    // expr abs = data_abs;
 
     // cout << "spatial_abs: " << spatial_abs <<endl;
     // cout << "spatial_star: " << spatial_star <<endl;
@@ -251,9 +261,24 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
     } else {
         expr_vector bool_items(z3_ctx);
         bool_items.push_back(nbool);
+        int num = atom.num_args();
+
+        //
+        expr_vector nil_items(z3_ctx);
+        expr nil = z3_ctx.int_const("nil");
+        expr E = z3_ctx.int_const(atom.arg(0).to_string().c_str());
+        expr F = z3_ctx.int_const(atom.arg(num/2).to_string().c_str());
+        expr S_E = atom.arg(num/2-1); 
+        expr S_F = atom.arg(num-1); 
+        nil_items.push_back(!(E == nil &&  !(S_E == z3_buffer.getEmptyset())));  
+        nil_items.push_back(!(F == nil &&  !(S_F == z3_buffer.getEmptyset())));  
+
+        expr nil_cond = mk_and(nil_items);
+        
+
         // unfold 0
         expr_vector items(z3_ctx);
-        int num = atom.num_args();
+        
         for (int i=0; i<num/2; i++) {
             if (atom.arg(i).get_sort().to_string() == "SetInt") {
                 items.push_back(atom.arg(i) == atom.arg(i+num/2));
@@ -306,7 +331,7 @@ expr Problem::getSpatialAbs(expr& atom, int i, expr_vector& new_bools, expr_vect
         // cout << "unfold0: " << unfold0 <<endl;
         // cout << "unfold1: " << unfold1 <<endl;
         // cout << "unfold2: " << unfold2 <<endl;
-        return !(!unfold0 && !unfold1 && !unfold2);
+        return nil_cond && !(!unfold0 && !unfold1 && !unfold2);
     }
 }
 
@@ -1038,7 +1063,10 @@ void Problem::_constructPhiGraph(Graph& g, RelationMatrix& rm) {
         edge.second = i;
         expr atom = space.arg(i);
         if (atom.decl().name().str() != "pto") {
-            if (m_phi_space_allocated[i] == 0) continue;
+            if (m_phi_space_allocated[i] == 0) {
+                cout << "no allocated!" <<endl;
+                continue;
+            }
 
             string name = atom.arg(0).to_string();
             name = name.append("_BOOL_").append(to_string(i)); 

@@ -18,6 +18,9 @@ extern Z3Buffer z3_buffer;
 z3::func_decl FuncType::determine(ArgTypeList& arg_type_list){
     // Todo
     string fname = m_name;
+    if (fname == "=>") {
+        fname = "implies";
+    }
     bool is_valid = true;
     string range;
     ArgTypeList arg_list;
@@ -45,10 +48,6 @@ z3::func_decl FuncType::determine(ArgTypeList& arg_type_list){
         throw SemanticException("the argument of " + fname + " is not matched!");
     }
 
-    // string key;
-    // genStr(arg_list, key);
-    // m_func_decl_bucket[key] = (fname+"_"+key+"_"+range);
-    // cout << "fun_decl: " << fname << "_" << key << "_" << range << endl; 
     // mk
     z3::sort_vector svec(z3_ctx);
     for (auto arg : arg_list) {
