@@ -349,7 +349,7 @@ void Graph::seekCycle()
 bool Graph::isDagLike() const
 {
     assert(!cycle.empty());
-    size_t i, j, k;
+    size_t i,  k;
     adjacency_list::out_edge_iterator it1, it2;
     std::set<int> v_out_cycle;//
 
@@ -370,7 +370,10 @@ bool Graph::isDagLike() const
             bool flag = false;
             for (auto u : cycle[i][0]) {
                 std::vector<Graph::edge_descriptor> res = getPath(v, u);
-                if (!res.empty()) {flag=true;break;}
+                if (!res.empty()) {
+                    flag = true;
+                } 
+                break;
             }
             if (!flag) return false;
         }
@@ -406,7 +409,6 @@ int Graph::whichCc(size_t v) const
 std::pair<int, int> Graph::getCycleCoord(size_t v) const
 {
     int i = whichCc(v);
-    int j;
     for (size_t k = 0; k < cycle[i].size(); ++k) {
         auto it = std::find(begin(cycle[i][k]), end(cycle[i][k]), v);
         if (it != end(cycle[i][k]))

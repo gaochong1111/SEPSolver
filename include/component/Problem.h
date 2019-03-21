@@ -56,6 +56,8 @@ public:
 
     void show();
     void showEqClass();
+    void showRM();
+    void printPhi(Graph& g_phi, string fname);
 
 
 protected:
@@ -73,6 +75,8 @@ protected:
 
     void getOmegaAbs(expr& omega_abs_i, Graph& omega_g_i, vector<int>& omega, expr& omega_abs_i1); // next omega
     bool nextOmega(vector<int>& curr, vector<int>& target);
+
+    bool checkPsiPredEmpty(expr& psi_pred);
 
 private:
     int getSuffixIdx(string& str);
@@ -101,6 +105,8 @@ protected:
     SepSolver* m_ss;
     HeapType m_heap;
     expr_vector m_new_vars;
+    
+    int m_counter;
 };
 
 

@@ -41,9 +41,9 @@ void SepSolver::solve() {
 
 
 string SepSolver::checkSat() {
-    cout << "check sat...\n";
+    // cout << "check sat...\n";
     expr_vector free_items(z3_ctx);
-    m_problem->show();
+    // m_problem->show();
     expr abs = m_problem->getAbsPhi(free_items);
     // cout << abs <<endl;
 
@@ -53,7 +53,7 @@ string SepSolver::checkSat() {
 string SepSolver::check(expr& abs, expr_vector& free_items) {
     if (free_items.size() == 0) {
         // simple case
-        cout << "simple case: \n";
+        // cout << "simple case: \n";
         MonaTranslator mona_tl(abs);
         mona_tl.writeToFile("test.mona");
         std::map<std::string, std::string> model;
@@ -144,10 +144,13 @@ string SepSolver::check(expr& abs, expr_vector& free_items) {
 
 string SepSolver::checkEntl() {
     // check phi and psi is sat
-    cout << "check entl....\n";
+    // cout << "check entl....\n";
+    // m_problem->show();
     expr_vector phi_free_items(z3_ctx);
     expr abs_phi = m_problem->getAbsPhi(phi_free_items);
     string phi_res = check(abs_phi, phi_free_items);
+    // cout << "abs_phi: " << abs_phi <<endl;
+    // cout << "phi_res: " << phi_res <<endl;
     if (phi_res == "UNSAT") return "UNSAT";
     expr_vector psi_free_items(z3_ctx);
     expr abs_psi = m_problem->getAbsPsi(psi_free_items);
@@ -160,7 +163,9 @@ string SepSolver::checkEntl() {
     m_problem->constructPhiGraph(g_phi);
     m_problem->constructPsiGraph(g_psi);
 
-    cout << "MATCHING....\n";
+    m_problem->printPhi(g_phi, "graph_phi.dot");
+
+    // cout << "MATCHING....\n";
     bool res = m_problem->checkAllocatingPlans(g_phi, g_psi);
 
     if (res) {
