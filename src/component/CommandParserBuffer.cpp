@@ -61,6 +61,7 @@ SetLogicParser* CommandParserBuffer::getSetLogicParser() {
 
 CommandParserBuffer::~CommandParserBuffer() {
     for (auto item : m_buffer) {
-        delete item.second;
+        if (item.second != nullptr)
+            delete item.second;
     }
 }

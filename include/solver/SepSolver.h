@@ -14,7 +14,7 @@
 
 class SepSolver {
 public:
-    SepSolver() {}
+    SepSolver();
     virtual ~SepSolver(); 
     void setProblem(Problem* problem); 
 

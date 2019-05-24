@@ -27,7 +27,7 @@ public:
 
 protected:
     string m_theory; //<<< theory name
-    const string m_prefix="C:/Users/jackchong/Work/Code/CPP/SEPSolver/samples/Theories/";
+    const string m_prefix="/home/chong/work/SEPSolver/samples/Theories/";
     TokenScannerFactory m_factory;
     TheoryInfo m_info;
 };

@@ -18,6 +18,7 @@ using namespace z3;
 class Predicate {
 public:
     Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec);
+    ~Predicate();
 
     void getABC(expr_vector& alpha, expr_vector& beta, expr_vector& gamma);
     void getAlpha(expr_vector& alpha);

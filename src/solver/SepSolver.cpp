@@ -18,10 +18,9 @@
 extern z3::context z3_ctx;
 extern Z3Buffer z3_buffer;
 
+SepSolver::SepSolver(): m_problem(nullptr) { }
+
 SepSolver::~SepSolver() {
-    if (m_problem != nullptr) {
-        delete m_problem;
-    }
 }
 
 void SepSolver::setProblem(Problem* problem) {

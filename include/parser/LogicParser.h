@@ -30,7 +30,7 @@ public:
 
     protected:
     string m_logic; ///< Member description
-    const string m_prefix="C:/Users/jackchong/Work/Code/CPP/SEPSolver/samples/Logics/";
+    const string m_prefix="/home/chong/work/SEPSolver/samples/Logics/";
     TokenScannerFactory m_factory;
     
     LogicInfo m_info;

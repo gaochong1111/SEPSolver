@@ -1,7 +1,7 @@
 #ifndef SAT_RQSPA_H
 #define SAT_RQSPA_H
 
-#include "fa.h"
+#include "FA.h"
 #include "z3++.h"
 #include "Types.h"
 

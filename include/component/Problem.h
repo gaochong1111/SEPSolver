@@ -28,10 +28,10 @@ using RelationMatrix = vector<vector<int>>;
 class Problem {
 public:
     Problem();
-    virtual ~Problem() {if (m_pred != nullptr) delete m_pred;}
+    virtual ~Problem(); 
     void setPredicate(Predicate* pred) {m_pred = pred;}
-    void setPhi(z3::expr& phi);
-    void setPsi(z3::expr& psi);
+    void setPhi(z3::expr phi);
+    void setPsi(z3::expr psi);
 
     void setSolver(SepSolver* ss);
 
@@ -82,9 +82,6 @@ private:
     int getSuffixIdx(string& str);
 
 protected:
-    Predicate* m_pred;
-    z3::expr m_phi;
-    z3::expr m_psi;
 
     z3::expr m_abs_phi;
     expr_vector m_phi_free_items;
@@ -107,6 +104,10 @@ protected:
     expr_vector m_new_vars;
     
     int m_counter;
+
+    z3::expr m_phi;
+    z3::expr m_psi;
+    Predicate* m_pred;
 };
 
 

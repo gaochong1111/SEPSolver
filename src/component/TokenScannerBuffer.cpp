@@ -56,7 +56,8 @@ SymbolScanner* TokenScannerBuffer::getSymbolScanner() {
 
 TokenScannerBuffer::~TokenScannerBuffer() {
     for (auto& item : m_buffer) {
-        delete item.second;
+        if (item.second != nullptr)
+            delete item.second;
     }
 }
 

@@ -1,4 +1,4 @@
-#include "solver/fa.h"
+#include "solver/FA.h"
 #include "component/Z3Buffer.h"
 #include <iostream>
 #include <fstream>

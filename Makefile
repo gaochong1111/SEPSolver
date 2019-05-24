@@ -32,7 +32,7 @@ main: $(OBJS)
 	echo "building main"
 
 tp: testparser
-	mv $(BASEDIR)/testparser.exe $(OBJSDIR)
+	mv $(BASEDIR)/testparser $(OBJSDIR)
 
 testparser: $(TPOBJ) $(OBJS)
 	$(CC) -o $@ $^ $(F_LIB)

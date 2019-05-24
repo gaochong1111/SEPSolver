@@ -26,6 +26,7 @@ TokenBuffer::TokenBuffer() {
 
 TokenBuffer::~TokenBuffer() {
     for (auto& item : m_buffer) {
-        delete item.second;
+        if (item.second != nullptr)
+            delete item.second;
     }
 }

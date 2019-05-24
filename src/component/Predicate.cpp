@@ -34,6 +34,10 @@ Predicate::Predicate(z3::expr_vector pars, z3::expr base, z3::expr rec)
     m_tr = getTr();
 }
 
+
+Predicate::~Predicate() {
+}
+
 expr Predicate::unfoldPredicate(expr_vector& args) {
     expr_vector x(z3_ctx);
     for (int i=args.size()-1; i>=0; i--) {
@@ -261,7 +265,7 @@ bool Predicate::getStrt() {
             if ((m_case_i & 6) == 0) {
                 // [xx 00 x]
                 setMatrix(matrix, 2, 3, 0); // max(S1) <= max(S2)
-            } else if ((m_case_i & 6) == 1) {
+            } else if ((m_case_i & 6) == 2) {
                 // [xx 01 x]
                 setMatrix(matrix, 1, 0, 0); // min(S2) <= min(S1)
             }

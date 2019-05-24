@@ -15,16 +15,22 @@
 extern z3::context z3_ctx;
 extern Z3Buffer z3_buffer;
 
-Problem::Problem():m_pred(nullptr), m_phi(z3_ctx), m_psi(z3_ctx),
+Problem::Problem():
     m_abs_phi(z3_ctx), m_phi_free_items(z3_ctx), m_abs_psi(z3_ctx), m_psi_free_items(z3_ctx), 
-    m_new_vars(z3_ctx), m_counter(0) {}
+    m_new_vars(z3_ctx), m_counter(0), m_phi(z3_ctx), m_psi(z3_ctx), m_pred(nullptr)  {}
 
-void Problem::setPhi(expr& phi) {
+Problem::~Problem() {
+    if (m_pred != nullptr) {
+        delete m_pred;
+    }
+}
+
+void Problem::setPhi(expr phi) {
     m_phi = phi;
     initInfo(phi, m_phi_location, m_phi_location_relation);
 }
 
-void Problem::setPsi(expr& psi) {
+void Problem::setPsi(expr psi) {
     m_psi = psi;
     initInfo(psi, m_psi_location, m_psi_location_relation);
 }
@@ -811,6 +817,7 @@ bool Problem::matchPto(expr& psi_atom, expr& omega_atom) {
 }
 
 bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
+    cout << "match Predicate: \n";
     // path match pred atom
     expr phi_space = m_phi.arg(m_phi.num_args()-1);
     z3::expr_vector data_items(z3_ctx);
@@ -899,7 +906,7 @@ bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
         for (int i=0; i<seg_size; i++) {
             if (seg_flag[i] == 1) {
                 // pred
-                for (int j=seg_start[i]; j<seg_end[j]-1; j++) {
+                for (int j=seg_start[i]; j<seg_end[i]-1; j++) {
                     expr atom1 = phi_space.arg(paths[j]);
                     expr atom2 = phi_space.arg(paths[j+1]);
                     for (int k=0; k<psi_arg_size/2; k++) {
@@ -958,8 +965,9 @@ bool Problem::matchPredicate(expr& psi_atom, vector<int>& paths) {
                 data_items.push_back(!forall(pevars, !mk_and(body_items)));
             }
         }
+
     }
-    // cout << "data_itmes: " << data_items <<endl;
+    cout << "data_itmes: " << data_items <<endl;
     if (data_items.size() > 0) {
         expr check_f = m_abs_phi && !z3::mk_and(data_items);
         if (m_ss->check(check_f, m_phi_free_items) == "UNSAT") {

@@ -23,7 +23,7 @@ void testParser(string& file_name) {
     Parser parser(fin, factory);
     try {
         parser.parse();
-    } catch(BaseException& e) {
+    } catch(std::exception& e) {
         cout << e.what() << endl;
         exit(-1);
     }
